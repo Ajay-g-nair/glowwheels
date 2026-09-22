@@ -159,8 +159,13 @@ def register_user():
             role='user'
         )
         user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Registration could not be completed: {e}', 'danger')
+            return render_template('auth/register_user.html')
 
         flash('Account created successfully! Please sign in to book your wash.', 'success')
         return redirect(url_for('auth.login'))
@@ -197,8 +202,13 @@ def register_worker():
             role='worker'
         )
         worker.set_password(password)
-        db.session.add(worker)
-        db.session.commit()
+        try:
+            db.session.add(worker)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Worker registration could not be completed: {e}', 'danger')
+            return render_template('auth/register_worker.html')
 
         flash('Staff account registered! Please sign in to the Worker Portal.', 'success')
         return redirect(url_for('auth.worker_login'))

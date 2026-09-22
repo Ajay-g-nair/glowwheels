@@ -89,11 +89,14 @@ def book():
             payment_status='pending'
         )
 
-        db.session.add(new_booking)
-        db.session.commit()
-
-        flash('Booking placed successfully! Your slot has been reserved.', 'success')
-        return redirect(url_for('user.booking_success', booking_id=new_booking.id))
+        try:
+            db.session.add(new_booking)
+            db.session.commit()
+            flash('Booking placed successfully! Your slot has been reserved.', 'success')
+            return redirect(url_for('user.booking_success', booking_id=new_booking.id))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Unable to complete booking: {e}', 'danger')
 
     return render_template(
         'user/book.html',

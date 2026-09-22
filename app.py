@@ -44,9 +44,26 @@ def create_app(config_class=Config):
 
     @app.errorhandler(500)
     def server_error(e):
+        import traceback
+        from flask import request
+        app.logger.error(f"Server Error: {e}\n{traceback.format_exc()}")
+        if request.args.get('debug') == '1':
+            return f"<h3>500 Internal Server Error</h3><pre>{traceback.format_exc()}</pre>", 500
         return render_template('errors/500.html'), 500
 
-    # Auto create tables and check for default admin
+    @app.errorhandler(Exception)
+    def handle_unhandled_exception(e):
+        import traceback
+        from werkzeug.exceptions import HTTPException
+        from flask import request
+        if isinstance(e, HTTPException):
+            return e
+        app.logger.error(f"Unhandled Exception: {type(e).__name__}: {e}\n{traceback.format_exc()}")
+        if request.args.get('debug') == '1':
+            return f"<h3>Unhandled Exception: {type(e).__name__}: {e}</h3><pre>{traceback.format_exc()}</pre>", 500
+        return render_template('errors/500.html'), 500
+
+    # Auto create tables and check for default admin & initial packages
     with app.app_context():
         try:
             db.create_all()
@@ -60,8 +77,67 @@ def create_app(config_class=Config):
                 )
                 admin.set_password(Config.ADMIN_PASSWORD)
                 db.session.add(admin)
-                db.session.commit()
+
+            # Ensure default packages exist if table is empty
+            if Package.query.count() == 0:
+                default_packages = [
+                    Package(
+                        name="Basic Wash",
+                        price=299.0,
+                        duration_mins=30,
+                        badge="Essential",
+                        icon="droplet",
+                        description="Quick exterior spruce up for everyday driving.",
+                        features="Exterior wash; Foam cleaning; Wheel cleaning; Drying; Tyre dressing"
+                    ),
+                    Package(
+                        name="Premium Wash",
+                        price=499.0,
+                        duration_mins=50,
+                        badge="Most Popular",
+                        icon="sparkles",
+                        description="Comprehensive interior and exterior detailing for complete cleanliness.",
+                        features="Exterior wash; Interior vacuum; Dashboard cleaning; Tyre cleaning; Mat cleaning; Glass cleaning"
+                    ),
+                    Package(
+                        name="Complete Detailing",
+                        price=999.0,
+                        duration_mins=90,
+                        badge="Luxury Care",
+                        icon="shield-halved",
+                        description="Showroom gloss restoration with paint wax and deep interior sanitization.",
+                        features="Everything in Premium; Interior deep cleaning; Stain removal; Polishing and waxing; Headlight cleaning; Long lasting protection"
+                    )
+                ]
+                db.session.bulk_save_objects(default_packages)
+
+            # Ensure default products exist if empty
+            if Product.query.count() == 0:
+                default_products = [
+                    Product(name="High Foam Car Shampoo", category="Chemicals", stock_quantity=14, unit="bottles", low_threshold=3),
+                    Product(name="Tire Shine and Rim Polish", category="Chemicals", stock_quantity=8, unit="bottles", low_threshold=2),
+                    Product(name="Microfiber Detailing Towels", category="Accessories", stock_quantity=24, unit="pieces", low_threshold=6),
+                    Product(name="Carnauba Liquid Body Wax", category="Polish", stock_quantity=5, unit="bottles", low_threshold=2),
+                    Product(name="Interior Dashboard Dressing", category="Chemicals", stock_quantity=6, unit="bottles", low_threshold=2),
+                    Product(name="Wet and Dry Vacuum Bags", category="Equipment", stock_quantity=10, unit="packs", low_threshold=3),
+                    Product(name="Ceramic Hydrophobic Sealant", category="Coatings", stock_quantity=4, unit="bottles", low_threshold=2)
+                ]
+                db.session.bulk_save_objects(default_products)
+
+            # Ensure sample worker exists if none
+            if not User.query.filter_by(role='worker').first():
+                sample_worker = User(
+                    username="worker1",
+                    full_name="Ramesh (Field Specialist)",
+                    phone="9876500001",
+                    role="worker"
+                )
+                sample_worker.set_password("worker123")
+                db.session.add(sample_worker)
+
+            db.session.commit()
         except Exception as e:
+            db.session.rollback()
             app.logger.warning(f"Database initialization notice: {e}")
 
     return app

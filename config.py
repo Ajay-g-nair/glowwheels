@@ -17,12 +17,38 @@ class Config:
         # In Vercel or AWS Lambda environments, root filesystem is read-only; use writable /tmp/
         if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or (os.name != 'nt' and os.path.exists('/tmp')):
             tmp_db = '/tmp/glowwheels.db'
-            if not os.path.exists(tmp_db) and os.path.exists(bundled_db):
-                import shutil
+
+            # If tmp_db does not exist, is empty, or is not writable, copy cleanly from bundled_db
+            should_copy = False
+            if not os.path.exists(tmp_db) or os.path.getsize(tmp_db) == 0:
+                should_copy = True
+            elif not os.access(tmp_db, os.W_OK):
                 try:
-                    shutil.copy(bundled_db, tmp_db)
+                    os.chmod(tmp_db, 0o666)
                 except Exception:
                     pass
+                if not os.access(tmp_db, os.W_OK):
+                    try:
+                        os.remove(tmp_db)
+                        should_copy = True
+                    except Exception:
+                        pass
+
+            if should_copy and os.path.exists(bundled_db):
+                import shutil
+                try:
+                    shutil.copyfile(bundled_db, tmp_db)
+                except Exception:
+                    pass
+
+            # Explicitly grant read/write permissions (mode 0666) to the db and any SQLite journal/wal files
+            for ext in ['', '-journal', '-wal', '-shm']:
+                target = f"{tmp_db}{ext}"
+                if os.path.exists(target):
+                    try:
+                        os.chmod(target, 0o666)
+                    except Exception:
+                        pass
             sqlite_path = tmp_db
         else:
             sqlite_path = bundled_db
