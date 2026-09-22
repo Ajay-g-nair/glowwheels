@@ -12,7 +12,24 @@ class Config:
     if database_url and database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     
-    SQLALCHEMY_DATABASE_URI = database_url or f"sqlite:///{os.path.join(os.path.abspath(os.path.dirname(__file__)), 'glowwheels.db')}"
+    if not database_url:
+        bundled_db = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'glowwheels.db')
+        # In Vercel or AWS Lambda environments, root filesystem is read-only; use writable /tmp/
+        if os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or (os.name != 'nt' and os.path.exists('/tmp')):
+            tmp_db = '/tmp/glowwheels.db'
+            if not os.path.exists(tmp_db) and os.path.exists(bundled_db):
+                import shutil
+                try:
+                    shutil.copy(bundled_db, tmp_db)
+                except Exception:
+                    pass
+            sqlite_path = tmp_db
+        else:
+            sqlite_path = bundled_db
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{sqlite_path}"
+    else:
+        SQLALCHEMY_DATABASE_URI = database_url
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Fixed Admin Credentials (per project requirement)

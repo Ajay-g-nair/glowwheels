@@ -48,18 +48,21 @@ def create_app(config_class=Config):
 
     # Auto create tables and check for default admin
     with app.app_context():
-        db.create_all()
-        # Ensure default fixed admin user exists
-        admin = User.query.filter_by(username=Config.ADMIN_USERNAME).first()
-        if not admin:
-            admin = User(
-                username=Config.ADMIN_USERNAME,
-                full_name="GlowWheels Admin",
-                role="admin"
-            )
-            admin.set_password(Config.ADMIN_PASSWORD)
-            db.session.add(admin)
-            db.session.commit()
+        try:
+            db.create_all()
+            # Ensure default fixed admin user exists
+            admin = User.query.filter_by(username=Config.ADMIN_USERNAME).first()
+            if not admin:
+                admin = User(
+                    username=Config.ADMIN_USERNAME,
+                    full_name="GlowWheels Admin",
+                    role="admin"
+                )
+                admin.set_password(Config.ADMIN_PASSWORD)
+                db.session.add(admin)
+                db.session.commit()
+        except Exception as e:
+            app.logger.warning(f"Database initialization notice: {e}")
 
     return app
 
