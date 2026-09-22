@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}My Work History - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+            <a href="{{ url_for('worker.dashboard') }}" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-arrow-left"></i> Back to Worker Dashboard
+            </a>
+            <h1 class="text-3xl font-black text-white">My Car Wash Service History</h1>
+            <p class="text-xs text-slate-400 mt-1">All completed jobs and fees serviced</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 px-5 py-3 rounded-2xl">
+            <span class="text-xs text-slate-400">Total Serviced Fees:</span>
+            <span class="text-xl font-black text-emerald-400 ml-2">₹{{ total_earned | int }}</span>
+        </div>
+    </div>
+
+    {% if not history_jobs %}
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-12 text-center text-xs text-slate-400">
+            You haven't marked any car washes as finished yet. Start by committing to open jobs on your dashboard!
+        </div>
+    {% else %}
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="py-3 px-4">Booking Ref</th>
+                            <th class="py-3 px-4">Customer & Vehicle</th>
+                            <th class="py-3 px-4">Package</th>
+                            <th class="py-3 px-4">Date & Slot</th>
+                            <th class="py-3 px-4">Payment Method</th>
+                            <th class="py-3 px-4 text-right">Fee Collected</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        {% for b in history_jobs %}
+                            <tr class="hover:bg-slate-800/30 transition">
+                                <td class="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                                    {{ b.booking_number }}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <div class="text-white font-bold">{{ b.customer_name }}</div>
+                                    <div class="text-slate-400">{{ b.car_model }}</div>
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-200">
+                                    {{ b.package.name }}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <div class="text-white">{{ b.booking_date }}</div>
+                                    <div class="text-slate-400">{{ b.time_slot }}</div>
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase
+                                        {% if b.payment_mode in ['Google Pay', 'UPI', 'PhonePe'] %}bg-emerald-500/20 text-emerald-300
+                                        {% else %}bg-amber-500/20 text-amber-300{% endif %}">
+                                        {{ b.payment_mode or 'Cash' }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-right font-mono font-bold text-sm text-emerald-400">
+                                    ₹{{ b.payment_amount | int }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

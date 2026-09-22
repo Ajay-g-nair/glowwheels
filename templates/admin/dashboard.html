@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-cream-50 min-h-screen py-8 text-forest-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Top Header & Date matching Screen #11 -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-gold-600 font-mono">Executive Command Portal</span>
+                <h1 class="text-3xl font-serif font-bold text-forest-950">Admin Dashboard</h1>
+            </div>
+
+            <!-- Quick sub-nav & Actions -->
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Book a Wash button for Admin -->
+                <a href="{{ url_for('user.book') }}" class="px-4 py-2 rounded-xl gold-btn text-forest-950 text-xs font-bold shadow-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-calendar-plus text-xs"></i>
+                    <span>+ Book a Wash</span>
+                </a>
+
+                <!-- Add New Service Button -->
+                <button type="button" onclick="document.getElementById('addServiceModal').classList.remove('hidden')"
+                        class="px-4 py-2 rounded-xl bg-forest-900 text-gold-400 text-xs font-bold shadow-sm hover:bg-forest-850 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-circle text-xs"></i>
+                    <span>+ Add Service</span>
+                </button>
+
+                <a href="{{ url_for('admin.inventory') }}" class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-forest-900 shadow-sm hover:border-gold-500 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-boxes-stacked text-gold-600"></i>
+                    <span>Inventory</span>
+                    {% if finished_products %}
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin.workers') }}" class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-forest-900 shadow-sm hover:border-gold-500 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-users text-gold-600"></i>
+                    <span>Workers & Damage</span>
+                    {% if unresolved_damages %}
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin.finance') }}" class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-forest-900 shadow-sm hover:border-gold-500 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-receipt text-gold-600"></i>
+                    <span>Finance</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- ACTIVE ALERTS: PRODUCT DEPLETED / DAMAGED EQUIPMENT -->
+        {% if finished_products %}
+            <div class="mb-4 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg flex-shrink-0"></i>
+                    <div>
+                        <strong>Product Depleted Alert:</strong> Consumable supplies marked finished by workers ({% for p in finished_products %}{{ p.name }}{% if not loop.last %}, {% endif %}{% endfor %}).
+                    </div>
+                </div>
+                <a href="{{ url_for('admin.inventory') }}" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition flex-shrink-0 text-center">Restock Products</a>
+            </div>
+        {% endif %}
+
+        {% if unresolved_damages %}
+            <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 shadow-sm">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-amber-200">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base"></i>
+                        <h3 class="font-bold text-sm text-amber-900">Machine Damage Reported by Workers ({{ unresolved_damages | length }})</h3>
+                    </div>
+                    <a href="{{ url_for('admin.workers') }}" class="text-xs font-bold text-amber-800 hover:underline">View All in Workers Panel →</a>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {% for dmg in unresolved_damages %}
+                        <div class="bg-white p-3.5 rounded-xl border border-amber-200 shadow-sm flex items-start justify-between gap-3 text-xs">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <strong class="text-forest-950">{{ dmg.machine_name }}</strong>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                                        {% if dmg.severity == 'severe' %}bg-rose-100 text-rose-800
+                                        {% elif dmg.severity == 'moderate' %}bg-amber-100 text-amber-800
+                                        {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                        {{ dmg.severity }}
+                                    </span>
+                                </div>
+                                <p class="text-slate-600 text-[11px] mb-1.5">{{ dmg.issue_description }}</p>
+                                <div class="text-[10px] text-slate-400">
+                                    Reported by: <span class="font-semibold text-slate-700">{{ dmg.worker.full_name or dmg.worker.username }}</span>
+                                    {% if dmg.booking %} • Booking #{{ dmg.booking.booking_number }}{% endif %}
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ url_for('admin.resolve_damage_report', report_id=dmg.id) }}">
+                                <button type="submit" class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition shadow flex-shrink-0">
+                                    Mark Repaired
+                                </button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- 5 KPI STAT CARDS MATCHING SCREEN #11 OF MOCKUP -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <span class="text-xs text-slate-500 font-semibold block">Total Bookings</span>
+                <div class="text-2xl sm:text-3xl font-serif font-black text-forest-950 mt-1">{{ total_works }}</div>
+            </div>
+            <div class="bg-white border border-amber-200 rounded-2xl p-5 shadow-sm">
+                <span class="text-xs text-amber-700 font-semibold block">Pending</span>
+                <div class="text-2xl sm:text-3xl font-serif font-black text-amber-600 mt-1">{{ pending_works }}</div>
+            </div>
+            <div class="bg-white border border-purple-200 rounded-2xl p-5 shadow-sm">
+                <span class="text-xs text-purple-700 font-semibold block">In Progress</span>
+                <div class="text-2xl sm:text-3xl font-serif font-black text-purple-600 mt-1">{{ in_progress_works }}</div>
+            </div>
+            <div class="bg-white border border-emerald-200 rounded-2xl p-5 shadow-sm">
+                <span class="text-xs text-emerald-700 font-semibold block">Completed</span>
+                <div class="text-2xl sm:text-3xl font-serif font-black text-emerald-600 mt-1">{{ finished_works }}</div>
+            </div>
+            <div class="bg-white border border-gold-300 rounded-2xl p-5 shadow-sm col-span-2 md:col-span-1">
+                <span class="text-xs text-gold-700 font-semibold block">Total Income</span>
+                <div class="text-2xl sm:text-3xl font-serif font-black text-forest-950 mt-1">₹{{ total_income | int }}</div>
+                <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">GPay: ₹{{ gpay_income | int }}</span>
+            </div>
+        </div>
+
+        <!-- MAIN SECTION: RECENT BOOKINGS & INVENTORY STATUS -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+            <!-- Left 2 Cols: Recent Bookings Table matching Screen #11 -->
+            <div class="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-serif font-bold text-forest-950">Recent Bookings</h2>
+                        <p class="text-xs text-slate-500">Live feed of mobile car wash requests</p>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="flex items-center gap-1 text-xs">
+                        <a href="{{ url_for('admin.dashboard', status='all') }}" class="px-2.5 py-1 rounded-lg {% if status_filter == 'all' %}bg-forest-900 text-gold-400 font-bold{% else %}text-slate-500 hover:text-forest-900{% endif %}">All</a>
+                        <a href="{{ url_for('admin.dashboard', status='pending') }}" class="px-2.5 py-1 rounded-lg {% if status_filter == 'pending' %}bg-forest-900 text-gold-400 font-bold{% else %}text-slate-500 hover:text-forest-900{% endif %}">Pending</a>
+                        <a href="{{ url_for('admin.dashboard', status='confirmed') }}" class="px-2.5 py-1 rounded-lg {% if status_filter == 'confirmed' %}bg-forest-900 text-gold-400 font-bold{% else %}text-slate-500 hover:text-forest-900{% endif %}">Confirmed</a>
+                        <a href="{{ url_for('admin.dashboard', status='finished') }}" class="px-2.5 py-1 rounded-lg {% if status_filter == 'finished' %}bg-forest-900 text-gold-400 font-bold{% else %}text-slate-500 hover:text-forest-900{% endif %}">Finished</a>
+                    </div>
+                </div>
+
+                <!-- Table matching Screen #11 -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="py-3 px-3"># Ref</th>
+                                <th class="py-3 px-3">Customer</th>
+                                <th class="py-3 px-3">Package</th>
+                                <th class="py-3 px-3">Date & Time</th>
+                                <th class="py-3 px-3">Location</th>
+                                <th class="py-3 px-3">Status</th>
+                                <th class="py-3 px-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for b in bookings %}
+                                <tr class="hover:bg-slate-50/80 transition">
+                                    <td class="py-3 px-3 font-mono font-bold text-forest-900">
+                                        {{ b.booking_number[-7:] }}
+                                    </td>
+                                    <td class="py-3 px-3 font-medium text-slate-800">
+                                        {{ b.customer_name }}
+                                    </td>
+                                    <td class="py-3 px-3 text-slate-700">
+                                        {{ b.package.name }}
+                                    </td>
+                                    <td class="py-3 px-3 text-slate-600">
+                                        {{ b.booking_date }}<br>
+                                        <span class="text-gold-700 font-semibold">{{ b.time_slot }}</span>
+                                    </td>
+                                    <td class="py-3 px-3 text-slate-600 max-w-[120px] truncate">
+                                        {{ b.address or b.landmark or 'GPS Shared' }}
+                                    </td>
+                                    <td class="py-3 px-3">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase
+                                            {% if b.status == 'pending' %}bg-amber-100 text-amber-800
+                                            {% elif b.status == 'confirmed' %}bg-blue-100 text-blue-800
+                                            {% elif b.status == 'in_progress' or b.status == 'committed' %}bg-purple-100 text-purple-800
+                                            {% elif b.status == 'finished' %}bg-emerald-100 text-emerald-800
+                                            {% else %}bg-slate-100 text-slate-700{% endif %}">
+                                            {{ b.status.replace('_', ' ') }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-3 text-right">
+                                        <a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}"
+                                           class="px-3 py-1 rounded-xl bg-forest-900 text-gold-400 font-bold text-[11px] hover:bg-forest-850 transition">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="py-8 text-center text-slate-400">
+                                        No bookings in this filter.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right 1 Col: Inventory Status & Quick Actions -->
+            <div class="space-y-6">
+
+                <!-- Inventory Status Widget -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-serif font-bold text-base text-forest-950">Inventory Status</h3>
+                        <a href="{{ url_for('admin.inventory') }}" class="text-gold-700 text-xs font-bold hover:underline">View All →</a>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                            <span class="font-semibold text-slate-800">High Foam Shampoo</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">In Stock</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                            <span class="font-semibold text-slate-800">Tire Shine Polish</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">In Stock</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                            <span class="font-semibold text-slate-800">Microfiber Towels</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">In Stock</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2">
+                            <span class="font-semibold text-slate-800">Carnauba Liquid Wax</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">In Stock</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm text-xs">
+                    <h3 class="font-serif font-bold text-base text-forest-950 mb-3">Management Shortcuts</h3>
+                    <div class="space-y-2">
+                        <button type="button" onclick="document.getElementById('addServiceModal').classList.remove('hidden')"
+                                class="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-sparkles text-gold-600"></i> Add New Wash Package</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                        </button>
+                        <a href="{{ url_for('admin.inventory') }}" class="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-plus text-gold-600"></i> Add Product Stock</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                        </a>
+                        <a href="{{ url_for('admin.workers') }}" class="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-id-card text-gold-600"></i> Field Workers & Damage Reports</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                        </a>
+                        <a href="{{ url_for('admin.finance') }}" class="w-full py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold flex items-center justify-between transition">
+                            <span class="flex items-center gap-2"><i class="fa-solid fa-chart-line text-gold-600"></i> View Income Breakdown</span>
+                            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- NEW: SERVICE & PACKAGE MANAGEMENT SECTION -->
+        <div id="services-section" class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+                <div>
+                    <h2 class="text-xl font-serif font-bold text-forest-950">Wash Services & Pricing Management</h2>
+                    <p class="text-xs text-slate-500">Edit package rates, durations, features, or create new service offerings.</p>
+                </div>
+                <button type="button" onclick="document.getElementById('addServiceModal').classList.remove('hidden')"
+                        class="px-4 py-2 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow flex items-center gap-1.5 self-start sm:self-auto">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>+ Add New Package</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for pkg in packages %}
+                    <div class="border border-slate-200 rounded-2xl p-5 hover:border-gold-500/60 transition shadow-sm bg-slate-50/50 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-serif font-bold text-lg text-forest-950">{{ pkg.name }}</span>
+                                {% if pkg.badge %}
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-100 text-gold-800">
+                                        {{ pkg.badge }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex items-baseline gap-1 mb-3">
+                                <span class="text-2xl font-serif font-black text-forest-950">₹{{ pkg.price | int }}</span>
+                                <span class="text-xs text-slate-400">/ doorstep wash</span>
+                                <span class="ml-auto text-xs text-slate-500">
+                                    <i class="fa-regular fa-clock text-gold-600 mr-1"></i>{{ pkg.duration_mins }} Mins
+                                </span>
+                            </div>
+
+                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">{{ pkg.description }}</p>
+
+                            <div class="text-[11px] font-semibold text-slate-700 mb-2">Included Features:</div>
+                            <ul class="space-y-1.5 text-xs text-slate-600 mb-6">
+                                {% for f in pkg.get_features_list() %}
+                                    <li class="flex items-start gap-1.5">
+                                        <i class="fa-solid fa-check text-gold-600 text-[10px] mt-1 flex-shrink-0"></i>
+                                        <span>{{ f }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="pt-4 border-t border-slate-200 flex items-center gap-2">
+                            <button type="button" 
+                                    onclick="openEditServiceModal('{{ pkg.id }}', '{{ pkg.name }}', '{{ pkg.price | int }}', '{{ pkg.duration_mins }}', '{{ pkg.badge or '' }}', '{{ pkg.icon or 'sparkles' }}', '{{ pkg.description | replace('\'', '\\\'') }}', '{{ pkg.features | replace('\'', '\\\'') }}')"
+                                    class="flex-1 py-2 rounded-xl bg-forest-900 hover:bg-forest-850 text-gold-400 font-bold text-xs transition text-center">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit Details
+                            </button>
+                            <form method="POST" action="{{ url_for('admin.delete_service', package_id=pkg.id) }}" onsubmit="return confirm('Are you sure you want to delete this service?')">
+                                <button type="submit" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs transition border border-rose-200">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL: ADD NEW SERVICE -->
+<div id="addServiceModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-8 text-forest-950">
+        <button onclick="document.getElementById('addServiceModal').classList.add('hidden')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <h3 class="text-xl font-serif font-bold text-forest-950 mb-1">+ Add New Wash Service</h3>
+        <p class="text-xs text-slate-500 mb-6">Create a new car wash tier. It will immediately appear on the User and Booking pages.</p>
+
+        <form method="POST" action="{{ url_for('admin.add_service') }}" class="space-y-4 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Service Name *</label>
+                    <input type="text" name="name" required placeholder="e.g. Underbody Shield Wash"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Price (₹) *</label>
+                    <input type="number" name="price" required placeholder="e.g. 699"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500 font-mono">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Duration (Minutes)</label>
+                    <input type="number" name="duration_mins" value="45"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500 font-mono">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Badge Tag</label>
+                    <input type="text" name="badge" placeholder="e.g. Best Value, New"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Description</label>
+                <textarea name="description" rows="2" placeholder="Brief overview of the detailing service"
+                          class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-forest-950 outline-none focus:border-gold-500"></textarea>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Features (Separated by Semicolons ';')</label>
+                <textarea name="features" rows="3" placeholder="e.g. High-pressure underwash; Foam shampoo; Alloy wheel deep clean; Tyre shine"
+                          class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-forest-950 outline-none focus:border-gold-500"></textarea>
+                <span class="text-[10px] text-slate-400">Separate each bullet feature with a semicolon (;).</span>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow-lg mt-2">
+                Create & Publish Service
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDIT SERVICE DETAILS -->
+<div id="editServiceModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative my-8 text-forest-950">
+        <button onclick="document.getElementById('editServiceModal').classList.add('hidden')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <h3 class="text-xl font-serif font-bold text-forest-950 mb-1">Edit Service Details</h3>
+        <p class="text-xs text-slate-500 mb-6">Modify price, duration, features, and description.</p>
+
+        <form id="editServiceForm" method="POST" action="" class="space-y-4 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Service Name *</label>
+                    <input type="text" name="name" id="edit_pkg_name" required
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Price (₹) *</label>
+                    <input type="number" name="price" id="edit_pkg_price" required
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500 font-mono">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Duration (Minutes)</label>
+                    <input type="number" name="duration_mins" id="edit_pkg_duration"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500 font-mono">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Badge Tag</label>
+                    <input type="text" name="badge" id="edit_pkg_badge" placeholder="e.g. Most Popular"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-forest-950 outline-none focus:border-gold-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Description</label>
+                <textarea name="description" id="edit_pkg_desc" rows="2"
+                          class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-forest-950 outline-none focus:border-gold-500"></textarea>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Features (Separated by Semicolons ';')</label>
+                <textarea name="features" id="edit_pkg_features" rows="3"
+                          class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-forest-950 outline-none focus:border-gold-500"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow-lg mt-2">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openEditServiceModal(id, name, price, duration, badge, icon, desc, features) {
+        document.getElementById('editServiceForm').action = `/admin/services/${id}/edit`;
+        document.getElementById('edit_pkg_name').value = name;
+        document.getElementById('edit_pkg_price').value = price;
+        document.getElementById('edit_pkg_duration').value = duration;
+        document.getElementById('edit_pkg_badge').value = badge;
+        document.getElementById('edit_pkg_desc').value = desc;
+        document.getElementById('edit_pkg_features').value = features;
+        document.getElementById('editServiceModal').classList.remove('hidden');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Services - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-cream-50 min-h-screen py-8 text-forest-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <a href="{{ url_for('admin.dashboard') }}" class="text-xs text-gold-700 font-bold hover:underline mb-1 inline-block">&larr; Back to Dashboard</a>
+                <h1 class="text-3xl font-serif font-bold text-forest-950">Wash Services & Packages</h1>
+                <p class="text-xs text-slate-500">Add new packages or modify pricing and features dynamically.</p>
+            </div>
+            <a href="{{ url_for('admin.dashboard') }}#services-section" class="px-4 py-2 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow">
+                + Add or Edit Services
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for pkg in packages %}
+                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-serif font-bold text-xl text-forest-950">{{ pkg.name }}</h3>
+                            {% if pkg.badge %}
+                                <span class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-gold-100 text-gold-800">
+                                    {{ pkg.badge }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="text-2xl font-serif font-black text-forest-950 mb-2">₹{{ pkg.price | int }} <span class="text-xs font-normal text-slate-400">({{ pkg.duration_mins }} Mins)</span></div>
+                        <p class="text-xs text-slate-600 mb-4">{{ pkg.description }}</p>
+                        <ul class="space-y-1.5 text-xs text-slate-600 mb-6">
+                            {% for f in pkg.get_features_list() %}
+                                <li class="flex items-start gap-1.5">
+                                    <i class="fa-solid fa-check text-gold-600 text-[10px] mt-1 flex-shrink-0"></i>
+                                    <span>{{ f }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <a href="{{ url_for('admin.dashboard') }}#services-section" class="w-full py-2.5 rounded-xl bg-forest-900 text-gold-400 font-bold text-xs text-center">
+                        Edit in Dashboard
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

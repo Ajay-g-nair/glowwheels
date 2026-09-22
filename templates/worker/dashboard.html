@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+
+{% block title %}Worker Operations Dashboard - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-forest-950 min-h-screen py-10 text-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Top Greeting matching Screen #12 of mockup -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <span class="text-gold-400 text-xs font-mono uppercase tracking-widest">GlowWheels Mobile Specialist</span>
+                <h1 class="text-3xl sm:text-4xl font-serif font-bold text-white mt-0.5">
+                    Hello, {{ worker.full_name.split()[0] if worker.full_name else worker.username }}
+                </h1>
+                <p class="text-xs text-cream-200/80 font-light mt-1">Ready to make cars shine today!</p>
+            </div>
+
+            <!-- Quick Action Buttons for Worker -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <!-- Services & Rates Modal Trigger -->
+                <button type="button" onclick="document.getElementById('servicesModal').classList.remove('hidden')"
+                        class="px-3.5 py-2 rounded-xl bg-forest-900 border border-forest-800 text-cream-200 hover:text-gold-400 font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-gold-400"></i>
+                    <span>Services & Pricing</span>
+                </button>
+
+                <!-- Book for Customer -->
+                <a href="{{ url_for('user.book') }}" 
+                   class="px-3.5 py-2 rounded-xl gold-btn text-forest-950 font-bold transition flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-calendar-plus text-xs"></i>
+                    <span>+ Book for Customer</span>
+                </a>
+
+                <a href="{{ url_for('worker.history') }}" class="px-3.5 py-2 rounded-xl bg-forest-900 border border-forest-800 text-cream-200 hover:text-gold-400 font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-clock-rotate-left"></i> My History
+                </a>
+                <a href="{{ url_for('worker.overtime') }}" class="px-3.5 py-2 rounded-xl bg-forest-900 border border-forest-800 text-cream-200 hover:text-gold-400 font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-business-time"></i> Log Overtime
+                </a>
+            </div>
+        </div>
+
+        <!-- Layout Grid matching Screen #12 of mockup -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Left 2 Cols: Tabs & Job Cards (Available Works | My Works) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Tab Switcher from Screen #12 -->
+                <div class="flex items-center gap-2 p-1.5 bg-forest-900 rounded-2xl border border-forest-800 w-fit text-xs font-bold">
+                    <button type="button" onclick="showWorkerTab('available')" id="tab-btn-avail"
+                            class="px-5 py-2 rounded-xl bg-forest-800 text-gold-400 shadow transition">
+                        Available Works ({{ available_jobs | length }})
+                    </button>
+                    <button type="button" onclick="showWorkerTab('committed')" id="tab-btn-commit"
+                            class="px-5 py-2 rounded-xl text-slate-400 hover:text-white transition">
+                        My Active Works ({{ active_jobs | length }})
+                    </button>
+                </div>
+
+                <!-- 1. AVAILABLE WORKS TAB -->
+                <div id="tab-available" class="space-y-3">
+                    {% if not available_jobs %}
+                        <div class="p-8 text-center bg-forest-900/60 rounded-3xl border border-forest-800 text-xs text-slate-400">
+                            <i class="fa-solid fa-thumbs-up text-gold-400 text-2xl mb-2 block"></i>
+                            All jobs are committed! No pending car wash jobs in your area.
+                        </div>
+                    {% else %}
+                        {% for b in available_jobs %}
+                            <div class="bg-forest-900/80 border border-forest-800 hover:border-gold-500/40 rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition shadow-sm">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-forest-850 border border-forest-700 flex items-center justify-center text-gold-400 text-lg flex-shrink-0">
+                                        <i class="fa-solid fa-car"></i>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="text-base font-bold text-white">{{ b.customer_name }}</h3>
+                                            <span class="text-[10px] text-gold-400 font-mono font-bold">₹{{ b.payment_amount | int }}</span>
+                                        </div>
+                                        <div class="text-xs text-slate-300">{{ b.package.name }} • {{ b.car_model }}</div>
+                                        <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+                                            <span><i class="fa-regular fa-clock text-gold-400 mr-1"></i> {{ b.booking_date }}, {{ b.time_slot }}</span>
+                                            <span><i class="fa-solid fa-location-dot text-emerald-400 mr-1"></i> {{ b.address or b.landmark or 'Doorstep' }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2 self-end sm:self-center">
+                                    {% if b.latitude and b.longitude %}
+                                        <a href="{{ b.get_maps_url() }}" target="_blank" class="px-3 py-2 rounded-xl bg-forest-850 text-slate-300 text-xs font-semibold hover:text-white transition">
+                                            <i class="fa-solid fa-location-arrow text-emerald-400"></i>
+                                        </a>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('worker.commit_work', booking_id=b.id) }}">
+                                        <button type="submit" class="px-6 py-2 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow transition">
+                                            Commit
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- 2. MY ACTIVE WORKS TAB -->
+                <div id="tab-committed" class="hidden space-y-4">
+                    {% if not active_jobs %}
+                        <div class="p-8 text-center bg-forest-900/60 rounded-3xl border border-forest-800 text-xs text-slate-400">
+                            You have no active committed jobs right now. Claim an open job from Available Works!
+                        </div>
+                    {% else %}
+                        {% for b in active_jobs %}
+                            <div class="bg-forest-900 border border-gold-500/40 rounded-3xl p-6 space-y-4 shadow-md">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-mono text-gold-400 font-bold">Ref: #{{ b.booking_number }}</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider
+                                        {% if b.status == 'in_progress' %}bg-purple-900/60 text-purple-300 border border-purple-500/40 animate-pulse
+                                        {% else %}bg-blue-900/60 text-blue-300 border border-blue-500/40{% endif %}">
+                                        {{ b.status.replace('_', ' ') }}
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">{{ b.package.name }} (₹{{ b.payment_amount | int }})</h3>
+                                    <div class="text-xs text-slate-300 mt-1">
+                                        <strong>Vehicle:</strong> {{ b.car_model }} ({{ b.car_number or 'Plate N/A' }})
+                                    </div>
+                                    <div class="text-xs text-slate-400 mt-1">
+                                        <strong>Customer:</strong> {{ b.customer_name }} (<a href="tel:{{ b.customer_phone }}" class="text-gold-400 underline">{{ b.customer_phone }}</a>)
+                                    </div>
+                                    <div class="text-xs text-slate-400 mt-1">
+                                        <strong>Location:</strong> {{ b.address or b.landmark or 'Doorstep' }}
+                                    </div>
+                                    {% if b.latitude and b.longitude %}
+                                        <a href="{{ b.get_maps_url() }}" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-semibold hover:underline mt-2">
+                                            <i class="fa-solid fa-map-location-dot"></i> Open Live GPS in Google Maps
+                                        </a>
+                                    {% endif %}
+                                </div>
+
+                                <div class="pt-3 border-t border-forest-800 flex items-center gap-3">
+                                    {% if b.status != 'in_progress' %}
+                                        <form method="POST" action="{{ url_for('worker.start_work', booking_id=b.id) }}" class="flex-1">
+                                            <button type="submit" class="w-full py-2.5 rounded-xl bg-forest-800 hover:bg-forest-700 text-white font-bold text-xs border border-forest-600 transition">
+                                                <i class="fa-solid fa-play mr-1 text-[10px] text-gold-400"></i> Start Wash
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    <button type="button" onclick="openFinishModal('{{ b.id }}', '{{ b.booking_number }}', '{{ b.package.name }}', '{{ b.payment_amount | int }}')"
+                                            class="flex-1 py-2.5 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow transition">
+                                        <i class="fa-solid fa-check mr-1"></i> Finish Work & Payment
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- Right 1 Col: My Stats & Reporting Actions -->
+            <div class="space-y-6">
+
+                <!-- My Stats Card matching Screen #12 -->
+                <div class="bg-forest-900 border border-forest-800 rounded-3xl p-6 shadow-sm">
+                    <h3 class="font-serif font-bold text-lg text-white mb-4">My Stats</h3>
+                    
+                    <div class="grid grid-cols-3 gap-2 text-center py-2">
+                        <div class="p-3 bg-forest-950 rounded-2xl border border-forest-800">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Total</span>
+                            <span class="text-xl font-serif font-bold text-white mt-1 block">{{ finished_count + (active_jobs | length) }}</span>
+                        </div>
+                        <div class="p-3 bg-forest-950 rounded-2xl border border-forest-800">
+                            <span class="text-[10px] uppercase font-bold text-emerald-400 block">Done</span>
+                            <span class="text-xl font-serif font-bold text-emerald-400 mt-1 block">{{ finished_count }}</span>
+                        </div>
+                        <div class="p-3 bg-forest-950 rounded-2xl border border-forest-800">
+                            <span class="text-[10px] uppercase font-bold text-amber-400 block">Pending</span>
+                            <span class="text-xl font-serif font-bold text-amber-400 mt-1 block">{{ active_jobs | length }}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 mt-6">
+                        <!-- Machine Damage Report Trigger -->
+                        <button onclick="document.getElementById('reportMachineModal').classList.remove('hidden')"
+                                class="w-full py-2.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-850 border border-amber-500/40 text-amber-300 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                            <span>Report Damaged Machine / Tool</span>
+                        </button>
+
+                        <!-- Finished Product Depletion Trigger -->
+                        <button onclick="document.getElementById('reportProductModal').classList.remove('hidden')"
+                                class="w-full py-2.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-850 border border-forest-800 text-cream-200 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-box-open text-gold-400"></i>
+                            <span>Notify Finished / Empty Product</span>
+                        </button>
+
+                        <a href="{{ url_for('worker.leave') }}"
+                           class="w-full py-2.5 px-4 rounded-xl bg-forest-950 hover:bg-forest-850 border border-forest-800 text-cream-200 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-calendar-minus text-gold-400"></i>
+                            <span>Apply Leave</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-forest-900 border border-forest-800 rounded-3xl p-6 text-xs text-cream-200">
+                    <span class="text-slate-400 block mb-1">Total Fees Serviced:</span>
+                    <div class="text-2xl font-serif font-bold text-gold-400">₹{{ total_serviced_amount | int }}</div>
+                    <p class="text-[11px] text-slate-400 mt-2">Collected across all completed mobile car wash jobs.</p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- 1. FINISH WORK MODAL -->
+<div id="finishModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-forest-900 border border-forest-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative my-8 text-cream-200">
+        <button onclick="document.getElementById('finishModal').classList.add('hidden')" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <h3 class="text-xl font-serif font-bold text-white mb-1">Finish Work & Collect Payment</h3>
+        <p class="text-xs text-slate-400 mb-4" id="modalBookingSubtitle">Booking #</p>
+
+        <form id="finishWorkForm" method="POST" action="" class="space-y-4 text-xs">
+            <div>
+                <label class="block font-bold text-white mb-2">Select Payment Method Collected:</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="p-2 rounded-xl bg-forest-950 border border-forest-800 cursor-pointer flex items-center gap-2">
+                        <input type="radio" name="payment_mode" value="Google Pay" checked class="text-gold-500">
+                        <span>Google Pay</span>
+                    </label>
+                    <label class="p-2 rounded-xl bg-forest-950 border border-forest-800 cursor-pointer flex items-center gap-2">
+                        <input type="radio" name="payment_mode" value="Cash" class="text-gold-500">
+                        <span>Cash</span>
+                    </label>
+                    <label class="p-2 rounded-xl bg-forest-950 border border-forest-800 cursor-pointer flex items-center gap-2">
+                        <input type="radio" name="payment_mode" value="PhonePe" class="text-gold-500">
+                        <span>PhonePe</span>
+                    </label>
+                    <label class="p-2 rounded-xl bg-forest-950 border border-forest-800 cursor-pointer flex items-center gap-2">
+                        <input type="radio" name="payment_mode" value="Card" class="text-gold-500">
+                        <span>Card</span>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-bold text-white mb-1">Payment Amount (₹)</label>
+                <input type="number" name="payment_amount" id="modalPaymentAmount" required
+                       class="w-full bg-forest-950 border border-forest-800 rounded-xl px-3 py-2 text-white font-mono outline-none">
+            </div>
+
+            <div>
+                <label class="block font-bold text-white mb-1">Did any product finish?</label>
+                <div class="grid grid-cols-2 gap-1.5 max-h-28 overflow-y-auto">
+                    {% for p in inventory_products %}
+                        <label class="flex items-center gap-1.5 p-1.5 rounded-lg bg-forest-950 text-[11px]">
+                            <input type="checkbox" name="finished_products" value="{{ p.id }}" class="text-gold-500">
+                            <span>{{ p.name }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow-lg mt-4">
+                Mark Work Finished
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 2. REPORT MACHINE DAMAGE STANDALONE MODAL (FIXED ACTION) -->
+<div id="reportMachineModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-forest-900 border border-forest-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-cream-200">
+        <button onclick="document.getElementById('reportMachineModal').classList.add('hidden')" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <h3 class="text-xl font-serif font-bold text-white mb-1">Report Damaged Machine / Tool</h3>
+        <p class="text-xs text-slate-400 mb-4">Admin dashboard will be notified immediately for repair or replacement.</p>
+
+        <form method="POST" action="{{ url_for('worker.report_damage') }}" class="space-y-3 text-xs">
+            <div>
+                <label class="block font-bold text-white mb-1">Machine / Equipment Name *</label>
+                <input type="text" name="machine_name" required placeholder="e.g. High Pressure Washer, Foam Gun, Wet Vacuum"
+                       class="w-full bg-forest-950 border border-forest-800 rounded-xl px-3 py-2 text-white outline-none">
+            </div>
+            <div>
+                <label class="block font-bold text-white mb-1">Issue / Damage Description *</label>
+                <textarea name="damage_description" rows="3" required placeholder="Describe what is damaged or not working properly"
+                          class="w-full bg-forest-950 border border-forest-800 rounded-xl p-2.5 text-white outline-none"></textarea>
+            </div>
+            <div>
+                <label class="block font-bold text-white mb-1">Severity</label>
+                <select name="severity" class="w-full bg-forest-950 border border-forest-800 rounded-xl px-3 py-2 text-white outline-none">
+                    <option value="minor">Minor (Usable with care)</option>
+                    <option value="moderate" selected>Moderate (Needs quick fix)</option>
+                    <option value="severe">Severe (Completely down / Inoperable)</option>
+                </select>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow-lg mt-2">
+                Submit Damage Report to Admin
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 3. REPORT FINISHED/EMPTY PRODUCT MODAL -->
+<div id="reportProductModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-forest-900 border border-forest-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-cream-200">
+        <button onclick="document.getElementById('reportProductModal').classList.add('hidden')" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <h3 class="text-xl font-serif font-bold text-white mb-1">Notify Depleted / Finished Product</h3>
+        <p class="text-xs text-slate-400 mb-4">Let Admin know which consumable ran out so they can restock.</p>
+
+        <form method="POST" action="{{ url_for('worker.report_product_finished') }}" class="space-y-3 text-xs">
+            <div>
+                <label class="block font-bold text-white mb-1">Select Consumable Product *</label>
+                <select name="product_id" required class="w-full bg-forest-950 border border-forest-800 rounded-xl px-3 py-2 text-white outline-none">
+                    <option value="">-- Choose Product --</option>
+                    {% for prod in all_products %}
+                        <option value="{{ prod.id }}">{{ prod.name }} (Current: {{ prod.stock_quantity }} {{ prod.unit }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl gold-btn text-forest-950 font-bold text-xs shadow-lg mt-2">
+                Notify Admin to Restock
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 4. SERVICES & PRICING LOOKUP MODAL FOR WORKERS -->
+<div id="servicesModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-forest-900 border border-forest-800 rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative text-cream-200 max-h-[85vh] overflow-y-auto">
+        <button onclick="document.getElementById('servicesModal').classList.add('hidden')" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <h3 class="text-2xl font-serif font-bold text-white mb-1">GlowWheels Service Catalog</h3>
+        <p class="text-xs text-slate-400 mb-6">Current wash packages, pricing, durations and service inclusions.</p>
+
+        <div class="space-y-4">
+            {% for pkg in packages %}
+                <div class="p-4 rounded-2xl bg-forest-950 border border-forest-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-base font-serif font-bold text-white">{{ pkg.name }}</span>
+                            {% if pkg.badge %}
+                                <span class="text-[9px] uppercase tracking-wider font-bold bg-gold-500/20 text-gold-400 border border-gold-500/30 px-2 py-0.5 rounded-full">
+                                    {{ pkg.badge }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-slate-400 mt-1">{{ pkg.description }}</p>
+                        <div class="flex flex-wrap gap-2 mt-2 text-[11px] text-slate-300">
+                            {% for f in pkg.get_features_list() %}
+                                <span class="bg-forest-900 px-2 py-0.5 rounded border border-forest-800">
+                                    <i class="fa-solid fa-check text-gold-500 text-[9px] mr-1"></i>{{ f }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <div class="text-2xl font-serif font-bold text-gold-400">₹{{ pkg.price | int }}</div>
+                        <div class="text-[10px] text-slate-400">{{ pkg.duration_mins }} Mins</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function showWorkerTab(tab) {
+        if (tab === 'available') {
+            document.getElementById('tab-available').classList.remove('hidden');
+            document.getElementById('tab-committed').classList.add('hidden');
+            document.getElementById('tab-btn-avail').className = "px-5 py-2 rounded-xl bg-forest-800 text-gold-400 shadow transition";
+            document.getElementById('tab-btn-commit').className = "px-5 py-2 rounded-xl text-slate-400 hover:text-white transition";
+        } else {
+            document.getElementById('tab-available').classList.add('hidden');
+            document.getElementById('tab-committed').classList.remove('hidden');
+            document.getElementById('tab-btn-avail').className = "px-5 py-2 rounded-xl text-slate-400 hover:text-white transition";
+            document.getElementById('tab-btn-commit').className = "px-5 py-2 rounded-xl bg-forest-800 text-gold-400 shadow transition";
+        }
+    }
+
+    function openFinishModal(id, num, pkg, amount) {
+        document.getElementById('modalBookingSubtitle').textContent = `Booking #${num} • ${pkg}`;
+        document.getElementById('modalPaymentAmount').value = amount;
+        document.getElementById('finishWorkForm').action = `/worker/finish/${id}`;
+        document.getElementById('finishModal').classList.remove('hidden');
+    }
+</script>
+{% endblock %}

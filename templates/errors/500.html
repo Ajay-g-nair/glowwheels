@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Server Error - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-20 px-4 text-center">
+    <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 text-rose-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="fa-solid fa-server"></i>
+    </div>
+    <h1 class="text-4xl font-black text-white">500</h1>
+    <h2 class="text-lg font-bold text-slate-300 mt-2">Internal Server Error</h2>
+    <p class="text-xs text-slate-400 mt-2 mb-6">Something went wrong on our end. Please try again in a few moments.</p>
+    <a href="{{ url_for('user.index') }}" class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs shadow transition">
+        Return to Home
+    </a>
+</div>
+{% endblock %}
+

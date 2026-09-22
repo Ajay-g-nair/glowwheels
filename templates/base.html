@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ config.BRAND_NAME }} - Mobile Car Wash & Detailing{% endblock %}</title>
+    <!-- Google Fonts: Cormorant Garamond & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        forest: {
+                            950: '#07130c',
+                            900: '#0d1f17',
+                            850: '#11281e',
+                            800: '#163327',
+                            700: '#1d4434',
+                            600: '#275844',
+                        },
+                        gold: {
+                            50: '#fdfbf7',
+                            100: '#faf2dc',
+                            200: '#f4e2b4',
+                            300: '#eed18c',
+                            400: '#d8b26e',
+                            500: '#c8a265',
+                            600: '#b89052',
+                            700: '#9b7440',
+                        },
+                        cream: {
+                            50: '#faf8f5',
+                            100: '#f5f0e8',
+                            200: '#eae2d3',
+                            300: '#ded2bf',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS for GPS Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .gold-btn {
+            background: linear-gradient(135deg, #d8b26e, #c8a265);
+            color: #07130c;
+            font-weight: 700;
+            transition: all 0.25s ease;
+        }
+        .gold-btn:hover {
+            background: linear-gradient(135deg, #e5be7a, #d5b06c);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px -5px rgba(200, 162, 101, 0.35);
+        }
+        .forest-btn {
+            background-color: #11281e;
+            border: 1px solid #163327;
+            color: #f5f0e8;
+            transition: all 0.25s ease;
+        }
+        .forest-btn:hover {
+            background-color: #163327;
+            border-color: #c8a265;
+            color: #ffffff;
+        }
+        .slot-booked {
+            background-color: #e2e8f0 !important;
+            color: #94a3b8 !important;
+            border-color: #cbd5e1 !important;
+            text-decoration: line-through;
+            cursor: not-allowed !important;
+            opacity: 0.65;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-forest-950 text-slate-100 flex flex-col min-h-screen font-sans selection:bg-gold-500 selection:text-forest-950">
+
+    <!-- Top Luxury Strip -->
+    <div class="bg-forest-900 border-b border-forest-800/80 text-cream-200 text-xs py-1.5 px-4 text-center tracking-wider font-medium">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-gold-400 font-serif text-sm italic font-bold">GlowWheels</span>
+                <span class="text-slate-400 hidden sm:inline">•</span>
+                <span class="hidden sm:inline">Doorstep Mobile Car Wash & Detailing</span>
+                <span class="text-slate-400">•</span>
+                <span class="text-gold-400 font-semibold text-[11px] sm:text-xs">9:00 AM – 6:00 PM Daily</span>
+            </div>
+            <div class="flex items-center gap-3 text-[11px]">
+                <a href="{{ url_for('auth.worker_login') }}" class="text-gold-400 hover:text-gold-300 font-bold flex items-center gap-1 bg-forest-950/60 px-2.5 py-0.5 rounded border border-gold-500/30">
+                    <i class="fa-solid fa-screwdriver-wrench text-[10px]"></i> Worker Portal
+                </a>
+                <span class="text-forest-700">|</span>
+                <a href="{{ url_for('auth.admin_login') }}" class="text-slate-400 hover:text-slate-200 flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-[10px]"></i> Admin
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-forest-950/95 backdrop-blur-md border-b border-forest-800/80 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Brand Logo -->
+                <div class="flex items-center gap-3">
+                    <a href="{{ url_for('user.index') }}" class="flex items-center gap-2.5 group">
+                        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="GlowWheels Logo"
+                             class="w-11 h-11 rounded-full border border-gold-400/50 shadow-md object-cover group-hover:scale-105 transition-transform">
+                        <div>
+                            <span class="text-2xl font-serif font-bold tracking-tight text-white flex items-center">
+                                Glow<span class="text-gold-400">Wheels</span>
+                            </span>
+                            <span class="text-[9px] text-gold-300 block -mt-1 font-semibold tracking-widest uppercase">Mobile Car Wash & Detailing</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                    <a href="{{ url_for('user.index') }}" class="text-cream-200 hover:text-gold-400 transition-colors">Home</a>
+                    <a href="{{ url_for('user.packages_catalog') }}" class="text-cream-200 hover:text-gold-400 transition-colors">Services</a>
+                    <a href="#about" class="text-cream-200 hover:text-gold-400 transition-colors">About</a>
+                    <a href="#contact" class="text-cream-200 hover:text-gold-400 transition-colors">Contact</a>
+
+                    {% if current_user and session_role == 'user' %}
+                        <a href="{{ url_for('user.my_bookings') }}" class="text-gold-400 hover:underline flex items-center gap-1.5">
+                            <i class="fa-solid fa-calendar-check text-xs"></i> My Bookings
+                        </a>
+                    {% endif %}
+
+                    {% if current_user and session_role == 'worker' %}
+                        <a href="{{ url_for('worker.dashboard') }}" class="text-gold-400 hover:text-gold-300 font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-screwdriver-wrench"></i> Worker Dashboard
+                        </a>
+                    {% endif %}
+
+                    {% if current_user and session_role == 'admin' %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="text-gold-400 hover:text-gold-300 font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved"></i> Admin Dashboard
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Right Actions / Auth buttons -->
+                <div class="flex items-center gap-3">
+                    {% if current_user %}
+                        <span class="text-xs text-cream-200 bg-forest-900 border border-forest-800 px-3 py-1.5 rounded-full hidden sm:inline-flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-gold-400"></span>
+                            {{ current_user.full_name or current_user.username }}
+                            <span class="text-[10px] uppercase font-bold text-gold-400 px-1 rounded bg-forest-800">
+                                {{ current_user.role }}
+                            </span>
+                        </span>
+                        <a href="{{ url_for('auth.logout') }}" class="text-xs text-rose-400 hover:text-rose-300 px-3 py-1.5 rounded-lg border border-rose-500/20 hover:bg-rose-500/10 transition-colors">
+                            Logout
+                        </a>
+                    {% else %}
+                        <!-- CUSTOMER LOGIN LINK -->
+                        <a href="{{ url_for('auth.login') }}" class="text-xs sm:text-sm font-semibold text-cream-200 hover:text-gold-400 px-3 py-1.5 transition">
+                            Login
+                        </a>
+                        <a href="{{ url_for('auth.register_user') }}" class="gold-btn text-xs sm:text-sm px-3.5 py-2 rounded-xl">
+                            Sign Up
+                        </a>
+                        <a href="{{ url_for('auth.worker_login') }}" class="hidden md:inline-flex items-center gap-1.5 text-xs text-gold-400 hover:text-gold-300 bg-forest-900 border border-gold-500/30 hover:border-gold-400 px-3 py-2 rounded-xl transition">
+                            <i class="fa-solid fa-screwdriver-wrench text-[11px]"></i>
+                            <span>Worker Portal</span>
+                        </a>
+                    {% endif %}
+
+                    <!-- Book Now Button -->
+                    <a href="{{ url_for('user.book') }}" class="forest-btn font-semibold text-xs sm:text-sm px-4 py-2 rounded-xl hidden sm:flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-days text-gold-400 text-xs"></i>
+                        <span>Book a Wash</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-3 px-4 py-3 rounded-2xl border flex items-center justify-between text-sm shadow-md
+                        {% if category == 'success' %}bg-forest-900 border-gold-500/40 text-gold-300
+                        {% elif category == 'danger' %}bg-rose-950/80 border-rose-500/40 text-rose-200
+                        {% elif category == 'warning' %}bg-amber-950/80 border-amber-500/40 text-amber-200
+                        {% else %}bg-forest-900 border-forest-800 text-cream-100{% endif %}">
+                        <div class="flex items-center gap-2.5">
+                            {% if category == 'success' %}<i class="fa-solid fa-circle-check text-gold-400"></i>
+                            {% elif category == 'danger' %}<i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+                            {% elif category == 'warning' %}<i class="fa-solid fa-bell text-amber-400"></i>
+                            {% else %}<i class="fa-solid fa-circle-info text-gold-400"></i>{% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white text-xs ml-4">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer matching Mockup -->
+    <footer id="about" class="bg-forest-950 border-t border-forest-800/80 mt-16 text-slate-400 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Col 1: Brand Info -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-forest-850 border border-gold-500/40 flex items-center justify-center text-gold-400">
+                            <i class="fa-solid fa-car-sparkle text-xs"></i>
+                        </div>
+                        <span class="text-xl font-serif font-bold text-white">Glow<span class="text-gold-400">Wheels</span></span>
+                    </div>
+                    <p class="text-slate-400 leading-relaxed text-xs">
+                        Mobile Car Wash & Detailing. Premium car care at your doorstep with high-pressure soft wash and professional steam equipment.
+                    </p>
+                    <p class="text-gold-400 font-serif italic text-sm">"More than just a wash — it's care."</p>
+                </div>
+
+                <!-- Col 2: Services -->
+                <div>
+                    <h4 class="text-white font-bold text-xs uppercase tracking-wider mb-3">Our Packages</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li><a href="{{ url_for('user.book') }}" class="hover:text-gold-400">Basic Wash (₹299)</a></li>
+                        <li><a href="{{ url_for('user.book') }}" class="hover:text-gold-400">Premium Wash (₹499)</a></li>
+                        <li><a href="{{ url_for('user.book') }}" class="hover:text-gold-400">Complete Detailing (₹999)</a></li>
+                        <li><a href="{{ url_for('user.book') }}" class="hover:text-gold-400">9 AM – 6 PM Slot Booking</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Dedicated Staff & Admin Portals (Separate Links!) -->
+                <div>
+                    <h4 class="text-white font-bold text-xs uppercase tracking-wider mb-3">Staff Portals</h4>
+                    <ul class="space-y-2.5 text-xs">
+                        <li>
+                            <a href="{{ url_for('auth.worker_login') }}" class="hover:text-gold-400 flex items-center gap-1.5 font-semibold text-cream-200">
+                                <i class="fa-solid fa-screwdriver-wrench text-gold-400 text-[11px]"></i>
+                                <span>Worker Portal Login</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('auth.register_worker') }}" class="hover:text-gold-400 text-slate-400">
+                                Join as Car Wash Specialist
+                            </a>
+                        </li>
+                        <li class="pt-2 border-t border-forest-850">
+                            <a href="{{ url_for('auth.admin_login') }}" class="hover:text-gold-400 flex items-center gap-1.5 font-semibold text-slate-300">
+                                <i class="fa-solid fa-shield-halved text-gold-400 text-[11px]"></i>
+                                <span>Admin Management Portal</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Contact & Hours -->
+                <div id="contact">
+                    <h4 class="text-white font-bold text-xs uppercase tracking-wider mb-3">Operating Hours & Contact</h4>
+                    <div class="bg-forest-900/70 p-3.5 rounded-2xl border border-forest-800 text-xs space-y-1.5">
+                        <div class="flex justify-between text-cream-200">
+                            <span>Monday – Sunday:</span>
+                            <span class="text-gold-400 font-bold">9:00 AM – 6:00 PM</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400">WhatsApp live GPS location sharing directly with the wash van.</p>
+                        <div class="pt-2 border-t border-forest-800 flex items-center gap-2 text-[11px] text-gold-400 font-semibold">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp Support: +{{ config.ADMIN_PHONE }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-forest-800/60 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-slate-500 text-xs">
+                <p>Clean Cars. Happier Roads. Designed for a Cleaner, Greener Tomorrow.</p>
+                <p class="mt-2 sm:mt-0">© {{ now.year if now else '2026' }} GlowWheels Mobile Car Wash & Detailing.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS for GPS maps -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

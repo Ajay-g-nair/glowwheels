@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}GlowWheels - Premium Mobile Car Wash & Detailing{% endblock %}
+
+{% block content %}
+<!-- SCREEN 1: HERO SECTION WITH LUXURY BG & LOGO -->
+<section class="relative overflow-hidden pt-12 pb-20 lg:pt-16 lg:pb-28 border-b border-forest-800/80 bg-forest-950 bg-cover bg-center"
+         style="background: linear-gradient(180deg, rgba(7, 19, 12, 0.85) 0%, rgba(7, 19, 12, 0.94) 100%), url('{{ url_for('static', filename='images/hero_bg.jpg') }}') center/cover no-repeat;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center max-w-3xl mx-auto">
+            
+            <!-- Hero Brand Logo Emblem -->
+            <div class="flex justify-center mb-5">
+                <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="GlowWheels Brand Logo"
+                     class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-gold-400/80 shadow-2xl shadow-gold-500/25 object-cover transform hover:scale-105 transition-transform duration-300">
+            </div>
+
+            <!-- Logo & Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-forest-900/90 backdrop-blur-sm border border-gold-500/40 text-gold-400 text-xs font-semibold tracking-wider mb-5 shadow-lg">
+                <i class="fa-solid fa-sparkles text-[11px]"></i>
+                <span class="uppercase tracking-widest text-[10px]">Doorstep Mobile Detailing</span>
+            </div>
+            
+            <!-- Hero Heading from Mockup -->
+            <h1 class="text-4xl sm:text-6xl font-serif font-bold text-white tracking-tight leading-tight mb-4 drop-shadow-md">
+                Premium Car Care, <br>
+                <span class="text-gold-400 italic">At Your Doorstep.</span>
+            </h1>
+            
+            <p class="text-base sm:text-lg text-cream-200/90 mb-8 max-w-xl mx-auto font-light leading-relaxed">
+                Professional cleaning. Hassle free. Wherever you are.
+            </p>
+
+            <!-- CTA Buttons matching Mockup -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                <a href="{{ url_for('user.book') }}" class="w-full sm:w-auto px-8 py-3.5 rounded-xl gold-btn text-forest-950 font-bold text-sm shadow-xl flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calendar-check text-xs"></i>
+                    <span>Book a Wash</span>
+                </a>
+                <a href="#services" class="w-full sm:w-auto px-8 py-3.5 rounded-xl forest-btn text-cream-100 font-semibold text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-list-check text-gold-400 text-xs"></i>
+                    <span>View Services</span>
+                </a>
+            </div>
+
+            <!-- Trust Icons Row from Mockup Screen #1 -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center border-t border-forest-800/80 pt-8">
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-forest-900 border border-gold-500/30 flex items-center justify-center text-gold-400 mb-2">
+                        <i class="fa-solid fa-car text-sm"></i>
+                    </div>
+                    <span class="text-xs font-bold text-cream-100">Doorstep Service</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-forest-900 border border-gold-500/30 flex items-center justify-center text-gold-400 mb-2">
+                        <i class="fa-solid fa-user-shield text-sm"></i>
+                    </div>
+                    <span class="text-xs font-bold text-cream-100">Professional Team</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-forest-900 border border-gold-500/30 flex items-center justify-center text-gold-400 mb-2">
+                        <i class="fa-solid fa-leaf text-sm"></i>
+                    </div>
+                    <span class="text-xs font-bold text-cream-100">Eco Friendly Products</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-forest-900 border border-gold-500/30 flex items-center justify-center text-gold-400 mb-2">
+                        <i class="fa-solid fa-circle-check text-sm"></i>
+                    </div>
+                    <span class="text-xs font-bold text-cream-100">Satisfaction Guaranteed</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- STATS COUNTER BAR MATCHING MOCKUP -->
+<section class="bg-forest-900/90 border-b border-forest-800 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+                <div class="text-3xl sm:text-4xl font-serif font-bold text-gold-400">500+</div>
+                <div class="text-xs text-cream-200 mt-1 font-medium">Happy Customers</div>
+            </div>
+            <div>
+                <div class="text-3xl sm:text-4xl font-serif font-bold text-gold-400">1200+</div>
+                <div class="text-xs text-cream-200 mt-1 font-medium">Cars Serviced</div>
+            </div>
+            <div>
+                <div class="text-3xl sm:text-4xl font-serif font-bold text-gold-400">4.9/5</div>
+                <div class="text-xs text-cream-200 mt-1 font-medium">Customer Rating</div>
+            </div>
+            <div>
+                <div class="text-3xl sm:text-4xl font-serif font-bold text-gold-400">100%</div>
+                <div class="text-xs text-cream-200 mt-1 font-medium">Doorstep Service</div>
+            </div>
+        </div>
+        <p class="text-center text-xs text-gold-400 font-serif italic mt-6">"A Cleaner Car. A Brighter You."</p>
+    </div>
+</section>
+
+<!-- SCREEN 2: PACKAGES SECTION MATCHING MOCKUP -->
+<section id="services" class="py-20 bg-cream-50 text-forest-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center max-w-2xl mx-auto mb-10">
+            <h2 class="text-3xl sm:text-4xl font-serif font-bold text-forest-950">Our Car Wash Packages</h2>
+            <p class="text-slate-600 text-xs mt-2">Choose the perfect care for your car.</p>
+            
+            <!-- Category Pills from Screen #2 of Mockup -->
+            <div class="flex items-center justify-center gap-2 mt-6">
+                <span class="px-4 py-1.5 rounded-full text-xs font-bold bg-forest-900 text-gold-400 cursor-pointer shadow">All Packages</span>
+                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer">Exterior</span>
+                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer">Interior</span>
+                <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 cursor-pointer">Detailing</span>
+            </div>
+        </div>
+
+        <!-- 3 Packages Cards matching Mockup Screen #2 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for package in packages %}
+                <div class="bg-white rounded-3xl p-7 border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between relative group">
+                    {% if package.badge %}
+                        <div class="absolute -top-3 right-6 bg-forest-900 border border-gold-500/40 text-gold-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow">
+                            {{ package.badge }}
+                        </div>
+                    {% endif %}
+
+                    <div>
+                        <!-- Car Image Illustration / Icon -->
+                        <div class="h-36 rounded-2xl bg-gradient-to-br from-forest-900 to-forest-950 flex items-center justify-center text-white mb-6 relative overflow-hidden group-hover:scale-[1.02] transition-transform">
+                            <div class="text-center z-10">
+                                <i class="fa-solid fa-car-side text-4xl text-gold-400 mb-1"></i>
+                                <span class="block text-[10px] text-cream-200 uppercase tracking-widest font-semibold">{{ package.duration_mins }} Mins Service</span>
+                            </div>
+                            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(200,162,101,0.2),transparent)]"></div>
+                        </div>
+
+                        <h3 class="text-xl font-serif font-bold text-forest-950 mb-1">{{ package.name }}</h3>
+                        
+                        <!-- Price matching Mockup (₹299, ₹499, ₹999) -->
+                        <div class="flex items-baseline gap-1 my-3 pb-3 border-b border-slate-100">
+                            <span class="text-3xl font-serif font-black text-forest-950">₹{{ package.price | int }}</span>
+                            <span class="text-xs text-slate-500">/ doorstep wash</span>
+                        </div>
+
+                        <!-- Features Checklist matching Mockup -->
+                        <ul class="space-y-2 text-xs text-slate-700 mb-8">
+                            {% for feature in package.get_features_list() %}
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-check text-gold-600 mt-0.5 text-xs flex-shrink-0"></i>
+                                    <span>{{ feature }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Gold Select Package CTA Button from Mockup -->
+                    <a href="{{ url_for('user.book', package_id=package.id) }}" 
+                       class="w-full py-3 rounded-xl gold-btn text-forest-950 font-bold text-xs text-center shadow transition-all block">
+                        Select Package
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-12 text-slate-500 font-serif italic text-sm">
+            "More than just a wash — it's care."
+        </div>
+
+    </div>
+</section>
+
+<!-- 4 STEP FLOW BANNER -->
+<section class="py-16 bg-forest-950 border-t border-forest-800 text-cream-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-xl mx-auto mb-12">
+            <span class="text-gold-400 font-bold uppercase tracking-wider text-[10px]">Seamless Experience</span>
+            <h2 class="text-3xl font-serif font-bold text-white mt-1">How GlowWheels Works</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+            <div class="bg-forest-900 p-6 rounded-2xl border border-forest-800">
+                <div class="w-12 h-12 mx-auto rounded-xl bg-forest-850 border border-gold-500/30 text-gold-400 flex items-center justify-center text-lg font-bold mb-3">1</div>
+                <h4 class="text-white font-bold text-sm mb-1">Select Package</h4>
+                <p class="text-xs text-slate-400">Basic Wash (₹299), Premium Wash (₹499), or Complete Detailing (₹999).</p>
+            </div>
+            <div class="bg-forest-900 p-6 rounded-2xl border border-forest-800">
+                <div class="w-12 h-12 mx-auto rounded-xl bg-forest-850 border border-gold-500/30 text-gold-400 flex items-center justify-center text-lg font-bold mb-3">2</div>
+                <h4 class="text-white font-bold text-sm mb-1">Pick 9am - 6pm Slot</h4>
+                <p class="text-xs text-slate-400">Choose any open slot. Already booked slots appear greyed out/colorless.</p>
+            </div>
+            <div class="bg-forest-900 p-6 rounded-2xl border border-forest-800">
+                <div class="w-12 h-12 mx-auto rounded-xl bg-forest-850 border border-gold-500/30 text-gold-400 flex items-center justify-center text-lg font-bold mb-3">3</div>
+                <h4 class="text-white font-bold text-sm mb-1">Share GPS Location</h4>
+                <p class="text-xs text-slate-400">1-tap WhatsApp location pin guides our wash van directly to your car.</p>
+            </div>
+            <div class="bg-forest-900 p-6 rounded-2xl border border-forest-800">
+                <div class="w-12 h-12 mx-auto rounded-xl bg-forest-850 border border-gold-500/30 text-gold-400 flex items-center justify-center text-lg font-bold mb-3">4</div>
+                <h4 class="text-white font-bold text-sm mb-1">Doorstep Wash Done</h4>
+                <p class="text-xs text-slate-400">Pay at service via Google Pay, Cash, or Card upon completion.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

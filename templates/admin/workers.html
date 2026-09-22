@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Workers, Equipment Damage & HR - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard
+            </a>
+            <h1 class="text-3xl font-black text-white">Staff, Damaged Equipment & HR</h1>
+            <p class="text-xs text-slate-400 mt-1">Review machine repair tickets, staff leave requests & overtime hours</p>
+        </div>
+    </div>
+
+    <!-- SECTION 1: Damaged Equipment Reports -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-white">Machine & Tool Damage Reports</h2>
+                <p class="text-xs text-slate-400">Issues reported by mobile car wash specialists during service</p>
+            </div>
+        </div>
+
+        {% if not damage_reports %}
+            <div class="p-8 text-center bg-slate-950/60 rounded-2xl border border-slate-800 text-xs text-slate-400">
+                <i class="fa-solid fa-circle-check text-emerald-400 text-xl mb-2 block"></i>
+                All pressure washers, vacuum cleaners, and foam guns are fully operational! No damage reported.
+            </div>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="py-3 px-4">Machine / Tool</th>
+                            <th class="py-3 px-4">Reported By</th>
+                            <th class="py-3 px-4">Issue Description</th>
+                            <th class="py-3 px-4">Severity</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        {% for r in damage_reports %}
+                            <tr class="hover:bg-slate-800/30 transition">
+                                <td class="py-3.5 px-4 font-bold text-white">
+                                    {{ r.machine_name }}
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-300">
+                                    {{ r.worker.full_name or r.worker.username }}
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-300 max-w-xs">
+                                    {{ r.issue_description }}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                                        {% if r.severity == 'severe' %}bg-rose-500/20 text-rose-300 border border-rose-500/40
+                                        {% elif r.severity == 'moderate' %}bg-amber-500/20 text-amber-300 border border-amber-500/40
+                                        {% else %}bg-blue-500/20 text-blue-300 border border-blue-500/40{% endif %}">
+                                        {{ r.severity }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    {% if r.is_repaired %}
+                                        <span class="text-emerald-400 font-bold flex items-center gap-1">
+                                            <i class="fa-solid fa-circle-check"></i> Repaired
+                                        </span>
+                                    {% else %}
+                                        <span class="text-rose-400 font-bold flex items-center gap-1 animate-pulse">
+                                            <i class="fa-solid fa-screwdriver-wrench"></i> Needs Repair
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3.5 px-4 text-right">
+                                    <form method="POST" action="{{ url_for('admin.resolve_damage_report', report_id=r.id) }}">
+                                        <button type="submit" class="px-3 py-1.5 rounded-lg {% if r.is_repaired %}bg-slate-800 text-slate-300{% else %}bg-emerald-600 text-white font-bold{% endif %} text-[11px] transition">
+                                            {% if r.is_repaired %}Mark Damaged{% else %}Mark Repaired{% endif %}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- SECTION 2: Worker Leave Requests & Overtime -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Leave Requests -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-calendar-minus"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Worker Leave Applications</h2>
+                    <p class="text-xs text-slate-400">Review and approve employee time off</p>
+                </div>
+            </div>
+
+            {% if not leave_requests %}
+                <p class="text-xs text-slate-500 py-6 text-center">No leave applications submitted.</p>
+            {% else %}
+                <div class="space-y-3">
+                    {% for l in leave_requests %}
+                        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <strong class="text-white text-sm">{{ l.worker.full_name or l.worker.username }}</strong>
+                                    <div class="text-cyan-400 mt-0.5">{{ l.start_date }} to {{ l.end_date }}</div>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                                    {% if l.status == 'approved' %}bg-emerald-500/20 text-emerald-300
+                                    {% elif l.status == 'rejected' %}bg-rose-500/20 text-rose-300
+                                    {% else %}bg-amber-500/20 text-amber-300{% endif %}">
+                                    {{ l.status }}
+                                </span>
+                            </div>
+                            <p class="text-slate-300 mb-3"><strong class="text-slate-500">Reason:</strong> {{ l.reason }}</p>
+
+                            {% if l.status == 'pending' %}
+                                <div class="flex items-center gap-2 pt-2 border-t border-slate-800">
+                                    <form method="POST" action="{{ url_for('admin.review_leave', leave_id=l.id, action='approve') }}" class="flex-1">
+                                        <button type="submit" class="w-full py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition">
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('admin.review_leave', leave_id=l.id, action='reject') }}" class="flex-1">
+                                        <button type="submit" class="w-full py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold transition">
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Overtime Hours Logged -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-business-time"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Overtime Hours Logged</h2>
+                    <p class="text-xs text-slate-400">Extra service hours claimed by workers</p>
+                </div>
+            </div>
+
+            {% if not overtime_logs %}
+                <p class="text-xs text-slate-500 py-6 text-center">No overtime hours logged yet.</p>
+            {% else %}
+                <div class="space-y-3">
+                    {% for o in overtime_logs %}
+                        <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs flex justify-between items-center">
+                            <div>
+                                <strong class="text-white text-sm">{{ o.worker.full_name or o.worker.username }}</strong>
+                                <p class="text-slate-400 mt-0.5">{{ o.reason }}</p>
+                                <span class="text-slate-500 text-[10px]">{{ o.work_date }}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-base font-black text-cyan-400">+{{ o.hours }} hrs</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- SECTION 3: Active Registered Workers -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-id-card text-cyan-400"></i> Registered Mobile Detailing Team
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for w in workers %}
+                <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-base">
+                            {{ w.username[0].upper() }}
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">{{ w.full_name or w.username }}</h4>
+                            <span class="text-emerald-400 font-mono text-[11px]">@{{ w.username }}</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1 text-slate-400">
+                        <div><i class="fa-solid fa-phone text-slate-500 mr-1.5"></i> {{ w.phone or 'No phone' }}</div>
+                        <div><i class="fa-solid fa-envelope text-slate-500 mr-1.5"></i> {{ w.email or 'No email' }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+

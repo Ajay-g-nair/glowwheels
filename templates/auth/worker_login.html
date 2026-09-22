@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Worker Portal Login - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-14 px-4">
+    <!-- Dedicated Worker Login Card -->
+    <div class="bg-forest-900 border border-forest-800 rounded-3xl p-8 shadow-2xl relative">
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-forest-850 border border-gold-500/30 text-gold-400 flex items-center justify-center mx-auto mb-3 text-lg">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+            <h2 class="text-2xl font-serif font-bold text-white">Worker Portal Login</h2>
+            <p class="text-xs text-slate-400 mt-1">Car Wash Specialist & Field Staff Access</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.worker_login') }}" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-cream-200 mb-1.5">Worker Username / Staff ID</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+                        <i class="fa-solid fa-id-badge text-xs text-gold-400"></i>
+                    </span>
+                    <input type="text" name="username" required 
+                           class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-600 outline-none transition"
+                           placeholder="e.g. worker1">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-cream-200 mb-1.5">Password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-500">
+                        <i class="fa-solid fa-lock text-xs text-gold-400"></i>
+                    </span>
+                    <input type="password" name="password" required 
+                           class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-600 outline-none transition"
+                           placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" 
+                    class="w-full py-3 rounded-xl gold-btn text-forest-950 font-bold text-xs tracking-wide shadow-lg transition-all mt-4">
+                Sign In to Worker Operations
+            </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-forest-800 text-center text-xs text-slate-400 space-y-2">
+            <p>
+                New wash specialist? 
+                <a href="{{ url_for('auth.register_worker') }}" class="text-gold-400 font-bold hover:underline ml-1">Join as Staff</a>
+            </p>
+            <p>
+                Looking for customer booking? 
+                <a href="{{ url_for('auth.login') }}" class="text-slate-300 hover:text-gold-400 hover:underline">Customer Login</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

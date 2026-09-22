@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Inventory & Supplies - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard
+            </a>
+            <h1 class="text-3xl font-black text-white">Car Wash Supplies & Inventory</h1>
+            <p class="text-xs text-slate-400 mt-1">Track car wash shampoos, tire waxes, towels, and finished product alerts</p>
+        </div>
+
+        <button onclick="document.getElementById('addProductCard').classList.toggle('hidden')"
+                class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add New Product</span>
+        </button>
+    </div>
+
+    <!-- Inventory KPIs -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <span class="text-xs text-slate-400">Total Products Tracked</span>
+            <div class="text-2xl font-black text-white mt-1">{{ products | length }}</div>
+        </div>
+        <div class="bg-slate-900 border border-emerald-500/30 rounded-2xl p-4">
+            <span class="text-xs text-emerald-400">In Healthy Stock</span>
+            <div class="text-2xl font-black text-emerald-300 mt-1">{{ products | length - finished_count - low_count }}</div>
+        </div>
+        <div class="bg-slate-900 border border-amber-500/30 rounded-2xl p-4">
+            <span class="text-xs text-amber-400">Low Stock Alert</span>
+            <div class="text-2xl font-black text-amber-300 mt-1">{{ low_count }}</div>
+        </div>
+        <div class="bg-slate-900 border border-rose-500/40 rounded-2xl p-4">
+            <span class="text-xs text-rose-400">Depleted / Finished</span>
+            <div class="text-2xl font-black text-rose-400 mt-1">{{ finished_count }}</div>
+        </div>
+    </div>
+
+    <!-- Add Product Form (Hidden by default) -->
+    <div id="addProductCard" class="hidden mb-8 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+        <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-box-open text-cyan-400"></i> Add New Product to Inventory
+        </h3>
+        <form method="POST" action="{{ url_for('admin.inventory') }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-xs text-slate-300 mb-1 font-semibold">Product Name</label>
+                <input type="text" name="name" required placeholder="e.g. Microfiber Towels"
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1 font-semibold">Category</label>
+                <select name="category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                    <option value="Chemicals">Chemicals & Soaps</option>
+                    <option value="Polish">Waxes & Polishes</option>
+                    <option value="Accessories">Accessories & Towels</option>
+                    <option value="Equipment">Machine Parts & Bags</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1 font-semibold">Initial Stock</label>
+                <input type="number" name="stock_quantity" value="10" min="0"
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1 font-semibold">Unit</label>
+                <input type="text" name="unit" value="bottles" placeholder="bottles/pieces"
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow transition">
+                    Save Product
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Products Table -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                    <tr>
+                        <th class="py-3 px-4">Item Name</th>
+                        <th class="py-3 px-4">Category</th>
+                        <th class="py-3 px-4">Current Stock</th>
+                        <th class="py-3 px-4">Low Warning Level</th>
+                        <th class="py-3 px-4">Supply Status</th>
+                        <th class="py-3 px-4 text-right">Quick Restock / Toggle</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60">
+                    {% for p in products %}
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="py-3.5 px-4 font-bold text-white">
+                                {{ p.name }}
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-400">
+                                {{ p.category }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="font-mono text-sm font-black {% if p.is_finished %}text-rose-400{% elif p.is_low_stock %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                                    {{ p.stock_quantity }}
+                                </span>
+                                <span class="text-slate-500 text-[11px]">{{ p.unit }}</span>
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-400 font-mono">
+                                ≤ {{ p.low_threshold }} {{ p.unit }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                {% if p.is_finished %}
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-xmark"></i> Finished / Empty
+                                    </span>
+                                {% elif p.is_low_stock %}
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Low Stock
+                                    </span>
+                                {% else %}
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check"></i> In Stock
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3.5 px-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <!-- Restock Form Inline -->
+                                    <form method="POST" action="{{ url_for('admin.restock_product', product_id=p.id) }}" class="inline-flex items-center gap-1">
+                                        <input type="number" name="add_quantity" value="5" min="1" class="w-14 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-white font-mono text-center">
+                                        <button type="submit" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition">
+                                            + Restock
+                                        </button>
+                                    </form>
+
+                                    <!-- Toggle Finished -->
+                                    <form method="POST" action="{{ url_for('admin.toggle_finished_product', product_id=p.id) }}">
+                                        <button type="submit" class="px-2.5 py-1 rounded-lg {% if p.is_finished %}bg-slate-800 text-slate-300 hover:bg-slate-700{% else %}bg-rose-900/60 text-rose-200 border border-rose-500/30 hover:bg-rose-800{% endif %} text-[11px] font-semibold transition">
+                                            {% if p.is_finished %}Mark Available{% else %}Mark Finished{% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

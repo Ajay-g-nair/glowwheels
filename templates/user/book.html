@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Doorstep Wash - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .slot-booked {
+        background-color: #f1f5f9 !important;
+        color: #94a3b8 !important;
+        border-color: #cbd5e1 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6 !important;
+        position: relative;
+    }
+    .slot-booked::after {
+        content: "Booked";
+        position: absolute;
+        bottom: 3px;
+        right: 8px;
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: #e2e8f0;
+        color: #64748b;
+        padding: 1px 4px;
+        border-radius: 4px;
+    }
+    .slot-available {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #ffffff;
+        border: 1.5px solid #bbf7d0;
+        color: #166534;
+    }
+    .slot-available:hover {
+        border-color: #22c55e;
+        background-color: #f0fdf4;
+    }
+    .slot-selected {
+        background: #11281e !important;
+        color: #f5f0e8 !important;
+        border-color: #c8a265 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px rgba(17, 40, 30, 0.25);
+    }
+    .slot-selected .slot-check {
+        color: #c8a265 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-cream-50 min-h-screen py-10 text-forest-950">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- STEP BREADCRUMBS MATCHING MOCKUP SCREENS #6-9 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 mb-8 shadow-sm">
+            <div class="flex items-center justify-between max-w-2xl mx-auto text-xs font-semibold">
+                <div class="flex items-center gap-2 text-forest-900 font-bold">
+                    <span class="w-6 h-6 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center text-[10px]">1</span>
+                    <span>Package</span>
+                </div>
+                <div class="w-8 h-[2px] bg-slate-200"></div>
+                <div class="flex items-center gap-2 text-forest-900 font-bold">
+                    <span class="w-6 h-6 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center text-[10px]">2</span>
+                    <span>Date & Time</span>
+                </div>
+                <div class="w-8 h-[2px] bg-slate-200"></div>
+                <div class="flex items-center gap-2 text-forest-900 font-bold">
+                    <span class="w-6 h-6 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center text-[10px]">3</span>
+                    <span>Location</span>
+                </div>
+                <div class="w-8 h-[2px] bg-slate-200"></div>
+                <div class="flex items-center gap-2 text-forest-900 font-bold">
+                    <span class="w-6 h-6 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center text-[10px]">4</span>
+                    <span>Confirm</span>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('user.book') }}" id="bookingForm" class="space-y-8">
+
+            <!-- STEP 1: SELECT YOUR PACKAGE (MATCHING SCREEN #6) -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center font-bold text-xs">
+                        1
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-serif font-bold text-forest-950">Select Your Package</h2>
+                        <p class="text-xs text-slate-500">Choose the wash tier for your vehicle</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {% for pkg in packages %}
+                        <label class="relative block cursor-pointer">
+                            <input type="radio" name="package_id" value="{{ pkg.id }}" class="peer sr-only package-radio"
+                                   {% if selected_package_id == pkg.id or loop.first and not selected_package_id %}checked{% endif %}>
+                            <div class="h-full p-5 rounded-2xl bg-white border-2 border-slate-200 peer-checked:border-gold-500 peer-checked:bg-forest-950/5 hover:border-slate-300 transition-all flex flex-col justify-between">
+                                <div>
+                                    <div class="h-24 rounded-xl bg-forest-900 flex items-center justify-center text-gold-400 mb-3">
+                                        <i class="fa-solid fa-car-side text-3xl"></i>
+                                    </div>
+                                    <h3 class="text-base font-serif font-bold text-forest-950">{{ pkg.name }}</h3>
+                                    <div class="text-xl font-serif font-black text-forest-900 my-1">₹{{ pkg.price | int }}</div>
+                                    <p class="text-[11px] text-slate-500 line-clamp-2 mb-3">{{ pkg.description }}</p>
+                                </div>
+                                <div class="py-1.5 px-3 rounded-xl text-center text-xs font-bold bg-slate-100 peer-checked:bg-forest-900 peer-checked:text-gold-400 text-slate-700 transition">
+                                    Select
+                                </div>
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- STEP 2: SELECT DATE & TIME (MATCHING SCREEN #7) -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center font-bold text-xs">
+                        2
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-serif font-bold text-forest-950">Select Date & Time Slots</h2>
+                        <p class="text-xs text-slate-500">Filled time slots appear <strong>colorless & disabled</strong></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Date Picker (Calendar) -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2">Service Date</label>
+                        <input type="date" name="booking_date" id="booking_date" required min="{{ today_str }}" value="{{ today_str }}"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-forest-950 outline-none font-semibold"
+                               onchange="fetchSlotAvailability()">
+                        <p class="text-[10px] text-slate-400 mt-2">Available 7 days a week from 9:00 AM to 6:00 PM.</p>
+                    </div>
+
+                    <!-- Available Time Slots (Matching Screen #7) -->
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
+                            <span>Available Time Slots (9:00 AM – 6:00 PM)</span>
+                            <span id="slotsLoadingBadge" class="hidden text-xs text-gold-600 animate-pulse">
+                                <i class="fa-solid fa-spinner fa-spin mr-1"></i> Checking...
+                            </span>
+                        </label>
+
+                        <div id="timeSlotsContainer" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            {% for slot in standard_slots %}
+                                <div class="slot-item slot-available p-2.5 rounded-xl text-xs flex items-center justify-between"
+                                     data-slot="{{ slot }}" onclick="selectSlot(this)">
+                                    <span class="font-bold text-[11px]">${slot}</span>
+                                    <i class="fa-regular fa-circle text-slate-300 slot-check text-[10px]"></i>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Hidden input storing chosen slot -->
+                        <input type="hidden" name="time_slot" id="selected_time_slot" required>
+
+                        <!-- Legend matching Screen #7 of mockup -->
+                        <div class="flex items-center gap-4 mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-3 h-3 rounded bg-emerald-100 border border-emerald-400"></div>
+                                <span class="text-emerald-800 font-semibold">Available</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <div class="w-3 h-3 rounded bg-slate-200 border border-slate-300"></div>
+                                <span class="line-through text-slate-400">Not Available (Colorless)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: LOCATION (MATCHING SCREEN #8) -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center font-bold text-xs">
+                        3
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-serif font-bold text-forest-950">Select Your Location</h2>
+                        <p class="text-xs text-slate-500">We will come directly to your doorstep</p>
+                    </div>
+                </div>
+
+                <!-- Toggle Buttons matching Screen #8 of mockup -->
+                <div class="flex items-center gap-3 mb-4">
+                    <button type="button" onclick="captureGPSLocation()" id="gpsBtn"
+                            class="px-5 py-2.5 rounded-xl bg-forest-900 text-gold-400 font-bold text-xs flex items-center gap-2 shadow transition">
+                        <i class="fa-solid fa-location-crosshairs text-sm"></i>
+                        <span>Use Current Location</span>
+                    </button>
+                    <span id="gpsStatusMessage" class="text-xs text-slate-500">
+                        Click to pin your car's spot like WhatsApp
+                    </span>
+                </div>
+
+                <!-- Coordinates (hidden) -->
+                <input type="hidden" name="latitude" id="latitude">
+                <input type="hidden" name="longitude" id="longitude">
+
+                <!-- Leaflet Interactive Map Preview -->
+                <div class="mb-4">
+                    <div id="locationMap" class="w-full h-56 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden relative z-0"></div>
+                    <p class="text-[10px] text-slate-400 mt-1">You can drag the map marker to fine-tune your vehicle's parking position.</p>
+                </div>
+
+                <!-- Address Input Box from Screen #8 of mockup -->
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Address / Landmark</label>
+                        <input type="text" name="address" id="addressInput" required placeholder="e.g. Near Infopark, Kakkanad, Kochi, Kerala"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-forest-950 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Parking Slot / Landmark Notes</label>
+                        <input type="text" name="landmark" placeholder="e.g. Basement 2, near Pillar 14"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-forest-950 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: CAR & CONTACT DETAILS (MATCHING SCREEN #9) -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-full bg-forest-900 text-gold-400 flex items-center justify-center font-bold text-xs">
+                        4
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-serif font-bold text-forest-950">Confirm Your Booking Details</h2>
+                        <p class="text-xs text-slate-500">Enter your vehicle info and confirm</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Car Model</label>
+                        <input type="text" name="car_model" required placeholder="e.g. White Creta / Honda City"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-forest-950 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Car Registration Number</label>
+                        <input type="text" name="car_number" placeholder="e.g. KL 07 CD 1234"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-forest-950 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Customer Name</label>
+                        <input type="text" name="customer_name" required value="{{ current_user.full_name or current_user.username }}"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-forest-950 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">WhatsApp Phone Number</label>
+                        <input type="tel" name="customer_phone" required value="{{ current_user.phone or '' }}" placeholder="9876543210"
+                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-forest-950 outline-none">
+                    </div>
+                </div>
+
+                <!-- Payment Notice from Screen #9 of mockup -->
+                <div class="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
+                    <div>
+                        <span class="text-slate-500 block text-[10px] uppercase font-bold">Payment Method:</span>
+                        <strong class="text-forest-950">Pay at Service (UPI / Google Pay / Cash / Card)</strong>
+                    </div>
+                    <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">Pay After Wash</span>
+                </div>
+
+                <div class="mt-4 flex items-center gap-2 text-xs text-slate-600">
+                    <input type="checkbox" checked required class="rounded text-forest-900">
+                    <span>I confirm that the above car wash information is correct.</span>
+                </div>
+            </div>
+
+            <!-- Submit Button matching Screen #9 of mockup -->
+            <div class="text-center pt-2">
+                <button type="submit" 
+                        class="w-full sm:w-auto px-12 py-4 rounded-2xl gold-btn text-forest-950 font-bold text-sm shadow-xl transition-all mx-auto flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-check text-base"></i>
+                    <span>Book Now</span>
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let map;
+    let marker;
+    const defaultLat = 9.9312;
+    const defaultLng = 76.2673;
+
+    function initMap(lat, lng) {
+        if (!map) {
+            map = L.map('locationMap').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+            marker.bindPopup("🚗 Your Car Wash Spot").openPopup();
+
+            marker.on('dragend', function(e) {
+                const pos = marker.getLatLng();
+                updateCoordinates(pos.lat, pos.lng);
+            });
+        } else {
+            map.setView([lat, lng], 16);
+            marker.setLatLng([lat, lng]);
+        }
+    }
+
+    function updateCoordinates(lat, lng) {
+        document.getElementById('latitude').value = lat.toFixed(6);
+        document.getElementById('longitude').value = lng.toFixed(6);
+    }
+
+    function captureGPSLocation() {
+        const statusMsg = document.getElementById('gpsStatusMessage');
+        const gpsBtn = document.getElementById('gpsBtn');
+
+        if (!navigator.geolocation) {
+            statusMsg.innerHTML = '<span class="text-rose-600">Geolocation not supported by browser.</span>';
+            return;
+        }
+
+        gpsBtn.disabled = true;
+        gpsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Pinning GPS...';
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                updateCoordinates(lat, lng);
+                initMap(lat, lng);
+
+                gpsBtn.disabled = false;
+                gpsBtn.innerHTML = '<i class="fa-solid fa-circle-check text-gold-400 mr-1"></i> GPS Pinned!';
+                statusMsg.innerHTML = `<span class="text-emerald-700 font-bold"><i class="fa-solid fa-map-pin mr-1"></i> Location captured (${lat.toFixed(4)}, ${lng.toFixed(4)})</span>`;
+
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d && d.display_name) {
+                            const addrInput = document.getElementById('addressInput');
+                            if (!addrInput.value) {
+                                addrInput.value = d.display_name;
+                            }
+                        }
+                    }).catch(() => {});
+            },
+            (err) => {
+                gpsBtn.disabled = false;
+                gpsBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs mr-1"></i> Retry GPS';
+                statusMsg.innerHTML = `<span class="text-amber-700">Could not acquire GPS. Drag the map pin instead.</span>`;
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
+    }
+
+    function selectSlot(element) {
+        if (element.classList.contains('slot-booked')) return;
+
+        document.querySelectorAll('.slot-item').forEach(el => {
+            el.classList.remove('slot-selected');
+            const icon = el.querySelector('.slot-check');
+            if (icon) {
+                icon.className = 'fa-regular fa-circle text-slate-300 slot-check text-[10px]';
+            }
+        });
+
+        element.classList.add('slot-selected');
+        const selectedIcon = element.querySelector('.slot-check');
+        if (selectedIcon) {
+            selectedIcon.className = 'fa-solid fa-circle-check text-gold-400 slot-check text-[10px]';
+        }
+
+        const slotValue = element.getAttribute('data-slot');
+        document.getElementById('selected_time_slot').value = slotValue;
+    }
+
+    function fetchSlotAvailability() {
+        const dateInput = document.getElementById('booking_date');
+        const dateVal = dateInput.value;
+        if (!dateVal) return;
+
+        const loadingBadge = document.getElementById('slotsLoadingBadge');
+        loadingBadge.classList.remove('hidden');
+        document.getElementById('selected_time_slot').value = '';
+
+        fetch(`/api/available-slots?date=${dateVal}`)
+            .then(res => res.json())
+            .then(data => {
+                loadingBadge.classList.add('hidden');
+                const container = document.getElementById('timeSlotsContainer');
+                container.innerHTML = '';
+
+                data.slots.forEach(s => {
+                    const div = document.createElement('div');
+                    if (s.available) {
+                        div.className = "slot-item slot-available p-2.5 rounded-xl text-xs flex items-center justify-between";
+                        div.setAttribute('data-slot', s.slot);
+                        div.onclick = function() { selectSlot(this); };
+                        div.innerHTML = `
+                            <span class="font-bold text-[11px]">${s.slot}</span>
+                            <i class="fa-regular fa-circle text-slate-300 slot-check text-[10px]"></i>
+                        `;
+                    } else {
+                        div.className = "slot-item slot-booked p-2.5 rounded-xl text-xs flex items-center justify-between";
+                        div.setAttribute('data-slot', s.slot);
+                        div.innerHTML = `
+                            <span class="font-medium text-[11px]">${s.slot}</span>
+                        `;
+                    }
+                    container.appendChild(div);
+                });
+            })
+            .catch(err => {
+                loadingBadge.classList.add('hidden');
+                console.error(err);
+            });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initMap(defaultLat, defaultLng);
+        fetchSlotAvailability();
+    });
+
+    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        const slot = document.getElementById('selected_time_slot').value;
+        if (!slot) {
+            e.preventDefault();
+            alert('Please select an available 9 AM - 6 PM time slot before proceeding.');
+            return false;
+        }
+    });
+</script>
+{% endblock %}

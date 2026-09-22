@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Our Car Wash Packages - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="bg-cream-50 py-16 text-forest-950 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <span class="text-gold-600 font-bold uppercase tracking-wider text-[11px]">Professional Detailing</span>
+            <h1 class="text-3xl sm:text-5xl font-serif font-bold text-forest-950 mt-1">Our Car Wash Packages</h1>
+            <p class="text-slate-600 text-xs sm:text-sm mt-2">Choose the perfect care for your car. We bring high-pressure foam, soft deionized water, and interior steam sanitization directly to you.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for package in packages %}
+                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between relative group">
+                    {% if package.badge %}
+                        <div class="absolute -top-3 right-6 bg-forest-900 border border-gold-500/40 text-gold-400 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow">
+                            {{ package.badge }}
+                        </div>
+                    {% endif %}
+
+                    <div>
+                        <!-- Car Illustration Header -->
+                        <div class="h-40 rounded-2xl bg-gradient-to-br from-forest-900 to-forest-950 flex items-center justify-center text-white mb-6 relative overflow-hidden">
+                            <div class="text-center z-10">
+                                <i class="fa-solid fa-car-side text-4xl text-gold-400 mb-1.5"></i>
+                                <span class="block text-[11px] text-cream-200 uppercase tracking-widest font-semibold">{{ package.duration_mins }} Mins Service</span>
+                            </div>
+                            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(200,162,101,0.25),transparent)]"></div>
+                        </div>
+
+                        <h3 class="text-2xl font-serif font-bold text-forest-950 mb-1">{{ package.name }}</h3>
+                        <p class="text-xs text-slate-500 mb-4 min-h-[32px]">{{ package.description }}</p>
+
+                        <div class="flex items-baseline gap-1 my-3 pb-3 border-b border-slate-100">
+                            <span class="text-3xl font-serif font-black text-forest-950">₹{{ package.price | int }}</span>
+                            <span class="text-xs text-slate-500">/ doorstep wash</span>
+                        </div>
+
+                        <h4 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-3">Service Inclusions:</h4>
+                        <ul class="space-y-2.5 text-xs text-slate-700 mb-8">
+                            {% for feature in package.get_features_list() %}
+                                <li class="flex items-start gap-2.5">
+                                    <i class="fa-solid fa-circle-check text-gold-600 mt-0.5 text-xs flex-shrink-0"></i>
+                                    <span>{{ feature }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <a href="{{ url_for('user.book', package_id=package.id) }}" 
+                       class="w-full py-3.5 rounded-xl gold-btn text-forest-950 font-bold text-xs text-center shadow transition-all block">
+                        Select Package & Book Slot
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-12 text-slate-500 font-serif italic text-sm">
+            "More than just a wash — it's care."
+        </div>
+
+    </div>
+</div>
+{% endblock %}

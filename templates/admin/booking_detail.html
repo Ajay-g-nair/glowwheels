@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking #{{ booking.booking_number }} Details - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- Top Navigation Breadcrumbs -->
+    <div class="flex items-center justify-between mb-6">
+        <a href="{{ url_for('admin.dashboard') }}" class="text-xs text-slate-400 hover:text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard
+        </a>
+        <span class="text-xs font-mono text-cyan-400 font-bold">Booking Reference #{{ booking.booking_number }}</span>
+    </div>
+
+    <!-- Main Layout Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left 2 Cols: Details & Actions -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Card: Booking & Customer Info -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider
+                                {% if booking.status == 'pending' %}bg-amber-500/20 text-amber-300 border border-amber-500/30
+                                {% elif booking.status == 'confirmed' %}bg-blue-500/20 text-blue-300 border border-blue-500/30
+                                {% elif booking.status == 'in_progress' or booking.status == 'committed' %}bg-purple-500/20 text-purple-300 border border-purple-500/30
+                                {% elif booking.status == 'finished' %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/30
+                                {% else %}bg-slate-800 text-slate-300{% endif %}">
+                                Status: {{ booking.status.replace('_', ' ') }}
+                            </span>
+                            {% if booking.rescheduled_at %}
+                                <span class="text-xs bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2 py-0.5 rounded">
+                                    <i class="fa-solid fa-clock-rotate-left mr-1"></i> Rescheduled
+                                </span>
+                            {% endif %}
+                        </div>
+                        <h1 class="text-2xl font-black text-white">{{ booking.package.name }}</h1>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-black text-cyan-400">₹{{ booking.payment_amount | int }}</div>
+                        <div class="text-xs {% if booking.payment_status == 'paid' %}text-emerald-400{% else %}text-amber-400{% endif %} font-bold uppercase">
+                            {{ booking.payment_status }} {% if booking.payment_mode %}({{ booking.payment_mode }}){% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
+                    <div>
+                        <span class="text-slate-500 block mb-0.5">Scheduled Date & Slot:</span>
+                        <strong class="text-white text-sm">{{ booking.booking_date }}</strong>
+                        <div class="text-cyan-300 font-semibold">{{ booking.time_slot }}</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block mb-0.5">Vehicle Details:</span>
+                        <strong class="text-white text-sm">{{ booking.car_model }}</strong>
+                        <div class="text-slate-400 font-mono">{{ booking.car_number or 'Number not provided' }}</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block mb-0.5">Customer Name & Phone:</span>
+                        <strong class="text-white text-sm">{{ booking.customer_name }}</strong>
+                        <a href="https://wa.me/{{ booking.customer_phone }}" target="_blank" class="text-emerald-400 hover:underline flex items-center gap-1 font-mono">
+                            <i class="fa-brands fa-whatsapp"></i> {{ booking.customer_phone }}
+                        </a>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block mb-0.5">Assigned Service Worker:</span>
+                        {% if booking.worker %}
+                            <strong class="text-emerald-300 text-sm flex items-center gap-1">
+                                <i class="fa-solid fa-user-check"></i> {{ booking.worker.full_name or booking.worker.username }}
+                            </strong>
+                            <div class="text-slate-400 font-mono">{{ booking.worker.phone or '' }}</div>
+                        {% else %}
+                            <span class="text-amber-400 italic">None assigned yet</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if booking.extension_notes %}
+                    <div class="mt-4 p-3.5 rounded-xl bg-orange-950/30 border border-orange-500/30 text-xs text-orange-200">
+                        <div class="font-bold flex items-center gap-1 mb-1">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Reschedule / Extension History:
+                        </div>
+                        <p>{{ booking.extension_notes }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Primary Management Actions -->
+                <div class="mt-6 pt-6 border-t border-slate-800 flex flex-wrap items-center gap-3">
+                    <!-- 1. Confirm Booking Button -->
+                    {% if booking.status != 'confirmed' and booking.status != 'finished' %}
+                        <form method="POST" action="{{ url_for('admin.confirm_booking', booking_id=booking.id) }}" class="inline">
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Confirm Booking (Notify on WhatsApp)</span>
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <!-- 2. Extend / Reschedule Button (Opens Modal) -->
+                    <button type="button" onclick="openExtendModal()" 
+                            class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Extend / Reschedule Slot</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card: WhatsApp-style GPS Location Pin & Map -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-rose-400"></i>
+                            <span>Customer Doorstep Location</span>
+                        </h3>
+                        <p class="text-xs text-slate-400">Captured via WhatsApp GPS coordinate share</p>
+                    </div>
+                    {% if booking.latitude and booking.longitude %}
+                        <a href="{{ booking.get_maps_url() }}" target="_blank"
+                           class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold border border-slate-700 flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Google Maps
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Address and Landmarks -->
+                <div class="mb-4 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs space-y-1">
+                    <p class="text-white font-medium">{{ booking.address or 'Address note provided' }}</p>
+                    {% if booking.landmark %}
+                        <p class="text-slate-400"><strong class="text-slate-300">Landmark / Parking note:</strong> {{ booking.landmark }}</p>
+                    {% endif %}
+                    {% if booking.latitude and booking.longitude %}
+                        <p class="text-cyan-400 font-mono text-[11px]">Coordinates: {{ booking.latitude }}, {{ booking.longitude }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Leaflet Interactive Map -->
+                {% if booking.latitude and booking.longitude %}
+                    <div id="bookingMap" class="w-full h-64 rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden relative z-0"></div>
+                {% else %}
+                    <div class="p-8 text-center text-slate-500 text-xs bg-slate-950 rounded-2xl border border-slate-800">
+                        No GPS coordinates were captured for this booking.
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Right 1 Col: Worker Assignment & Quick WhatsApp Tools -->
+        <div class="space-y-6">
+
+            <!-- Card: Worker Assignment -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+                <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-screwdriver-wrench text-emerald-400"></i>
+                    <span>Assign Car Wash Specialist</span>
+                </h3>
+                <form method="POST" action="{{ url_for('admin.assign_worker', booking_id=booking.id) }}" class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Select Registered Worker</label>
+                        <select name="worker_id" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                            <option value="">-- Unassigned (Available for worker commit) --</option>
+                            {% for w in workers %}
+                                <option value="{{ w.id }}" {% if booking.worker_id == w.id %}selected{% endif %}>
+                                    {{ w.full_name or w.username }} ({{ w.phone or 'No phone' }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition">
+                        Update Worker Assignment
+                    </button>
+                </form>
+            </div>
+
+            <!-- Card: Direct WhatsApp Dispatch Actions -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">Direct WhatsApp Alerts</h3>
+                </div>
+                <p class="text-xs text-slate-400 mb-4">Send pre-formatted messages directly to the customer on WhatsApp:</p>
+
+                <div class="space-y-3">
+                    <!-- 1. Send Confirmation Message -->
+                    <a href="{{ wa_confirm.url }}" target="_blank"
+                       class="w-full py-2.5 px-3 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-between">
+                        <span class="flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Send Booking Confirmation</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+
+                    <!-- 2. Send Reschedule Alert -->
+                    <a href="{{ wa_reschedule.url }}" target="_blank"
+                       class="w-full py-2.5 px-3 rounded-xl bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center justify-between">
+                        <span class="flex items-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> Send Reschedule Alert</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card: Package Inclusions Summary -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-xs">
+                <h3 class="text-sm font-bold text-white mb-2">{{ booking.package.name }} Details</h3>
+                <p class="text-slate-400 mb-3">{{ booking.package.description }}</p>
+                <div class="text-slate-500 font-semibold uppercase tracking-wider text-[10px] mb-2">Wash Inclusions:</div>
+                <ul class="space-y-1.5 text-slate-300">
+                    {% for feat in booking.package.get_features_list() %}
+                        <li class="flex items-start gap-1.5">
+                            <i class="fa-solid fa-check text-cyan-400 mt-0.5"></i>
+                            <span>{{ feat }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL: Extend / Reschedule Booking -->
+<div id="extendModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+        <button onclick="closeExtendModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white">Extend / Reschedule Booking</h3>
+                <p class="text-xs text-slate-400">Updates slot & generates customer WhatsApp message</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin.extend_booking', booking_id=booking.id) }}" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">New Booking Date</label>
+                <input type="date" name="new_date" required value="{{ booking.booking_date }}"
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">New 9 AM – 6 PM Time Slot</label>
+                <select name="new_time_slot" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white outline-none">
+                    {% for slot in standard_slots %}
+                        <option value="{{ slot }}" {% if booking.time_slot == slot %}selected{% endif %}>{{ slot }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">Reason / Reschedule Note</label>
+                <textarea name="extension_notes" rows="3" placeholder="e.g. Wash van delayed due to heavy rain; rescheduled to afternoon"
+                          class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-600 outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center gap-3 pt-2">
+                <button type="button" onclick="closeExtendModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg transition">
+                    Save & Prep WhatsApp
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openExtendModal() {
+        document.getElementById('extendModal').classList.remove('hidden');
+    }
+    function closeExtendModal() {
+        document.getElementById('extendModal').classList.add('hidden');
+    }
+
+    // Leaflet map setup if coordinates exist
+    {% if booking.latitude and booking.longitude %}
+    window.addEventListener('DOMContentLoaded', () => {
+        const lat = {{ booking.latitude }};
+        const lng = {{ booking.longitude }};
+        const map = L.map('bookingMap').setView([lat, lng], 16);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup("🚗 <b>{{ booking.car_model }}</b><br>{{ booking.customer_name }}").openPopup();
+    });
+    {% endif %}
+
+    // Check if redirect has trigger_wa URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const triggerWa = urlParams.get('trigger_wa');
+    if (triggerWa) {
+        if (confirm("WhatsApp message is ready! Would you like to open WhatsApp now to send it?")) {
+            window.open(triggerWa, '_blank');
+        }
+    }
+</script>
+{% endblock %}
+

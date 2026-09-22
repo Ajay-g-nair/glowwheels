@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Revenue & Income Analytics - {{ config.BRAND_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-arrow-left"></i> Back to Admin Dashboard
+            </a>
+            <h1 class="text-3xl font-black text-white">Car Wash Income & Financials</h1>
+            <p class="text-xs text-slate-400 mt-1">Breakdown of earnings collected via Google Pay, Cash, UPI & Card</p>
+        </div>
+    </div>
+
+    <!-- Income Breakdown Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <!-- Total -->
+        <div class="bg-slate-900 border border-cyan-500/40 rounded-3xl p-6 shadow-xl">
+            <div class="w-10 h-10 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-lg mb-3">
+                <i class="fa-solid fa-vault"></i>
+            </div>
+            <span class="text-xs text-slate-400 font-medium">Total Revenue</span>
+            <div class="text-3xl font-black text-white mt-1">₹{{ total_revenue | int }}</div>
+            <p class="text-[11px] text-cyan-400 mt-1">All collected car wash fees</p>
+        </div>
+
+        <!-- Google Pay & UPI -->
+        <div class="bg-slate-900 border border-emerald-500/30 rounded-3xl p-6 shadow-xl">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg mb-3">
+                <i class="fa-brands fa-google-pay text-2xl"></i>
+            </div>
+            <span class="text-xs text-slate-400 font-medium">Google Pay / UPI</span>
+            <div class="text-3xl font-black text-emerald-400 mt-1">₹{{ gpay_total | int }}</div>
+            <p class="text-[11px] text-slate-400 mt-1">Digital payments collected</p>
+        </div>
+
+        <!-- Cash In Hand -->
+        <div class="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 shadow-xl">
+            <div class="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg mb-3">
+                <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+            <span class="text-xs text-slate-400 font-medium">Cash Collected</span>
+            <div class="text-3xl font-black text-amber-400 mt-1">₹{{ cash_total | int }}</div>
+            <p class="text-[11px] text-slate-400 mt-1">Physical cash handed to worker</p>
+        </div>
+
+        <!-- Card / Other -->
+        <div class="bg-slate-900 border border-blue-500/30 rounded-3xl p-6 shadow-xl">
+            <div class="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg mb-3">
+                <i class="fa-solid fa-credit-card"></i>
+            </div>
+            <span class="text-xs text-slate-400 font-medium">Card Payments</span>
+            <div class="text-3xl font-black text-blue-400 mt-1">₹{{ card_total | int }}</div>
+            <p class="text-[11px] text-slate-400 mt-1">POS machine card payments</p>
+        </div>
+    </div>
+
+    <!-- Completed Works Income Ledger -->
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-receipt text-cyan-400"></i> Completed Works & Payments Ledger
+        </h3>
+
+        {% if not paid_bookings %}
+            <p class="text-xs text-slate-500 py-8 text-center">No completed and paid bookings recorded yet.</p>
+        {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-950 text-slate-400 uppercase font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="py-3 px-4">Booking Ref</th>
+                            <th class="py-3 px-4">Customer</th>
+                            <th class="py-3 px-4">Package</th>
+                            <th class="py-3 px-4">Serviced By</th>
+                            <th class="py-3 px-4">Payment Method</th>
+                            <th class="py-3 px-4 text-right">Fee Collected</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        {% for b in paid_bookings %}
+                            <tr class="hover:bg-slate-800/30 transition">
+                                <td class="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                                    {{ b.booking_number }}
+                                </td>
+                                <td class="py-3.5 px-4 text-white">
+                                    {{ b.customer_name }}
+                                    <span class="block text-[11px] text-slate-400">{{ b.car_model }}</span>
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-300">
+                                    {{ b.package.name }}
+                                </td>
+                                <td class="py-3.5 px-4 text-slate-300">
+                                    {{ b.worker.full_name or b.worker.username if b.worker else 'Direct' }}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase
+                                        {% if b.payment_mode in ['Google Pay', 'UPI', 'PhonePe'] %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/30
+                                        {% elif b.payment_mode == 'Cash' %}bg-amber-500/20 text-amber-300 border border-amber-500/30
+                                        {% else %}bg-blue-500/20 text-blue-300 border border-blue-500/30{% endif %}">
+                                        {{ b.payment_mode or 'Cash' }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-right font-mono font-bold text-sm text-white">
+                                    ₹{{ b.payment_amount | int }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
