@@ -1,65 +1,67 @@
 {% extends 'base.html' %}
 
-{% block title %}Worker Onboarding - {{ config.BRAND_NAME }}{% endblock %}
+{% block title %}Worker Registration - {{ config.BRAND_NAME }}{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto my-12 px-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+<div class="max-w-md mx-auto my-14 px-4">
+    <div class="bg-forest-900 border border-forest-800 rounded-3xl p-8 shadow-2xl relative text-cream-200">
         <div class="text-center mb-8">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto mb-3 text-xl">
+            <div class="w-12 h-12 rounded-2xl bg-forest-850 border border-gold-500/30 text-gold-400 flex items-center justify-center mx-auto mb-3 text-lg">
                 <i class="fa-solid fa-id-badge"></i>
             </div>
-            <h2 class="text-2xl font-black text-white">Join GlowWheels Team</h2>
-            <p class="text-xs text-slate-400 mt-1">Car Wash Specialist & Detailer Registration</p>
+            <h2 class="text-2xl font-serif font-bold text-white">Join GlowWheels Team</h2>
+            <p class="text-xs text-slate-400 mt-1">Car Wash Specialist & Detailer Onboarding</p>
         </div>
 
-        <form method="POST" action="{{ url_for('auth.register_worker') }}" class="space-y-4">
+        <form method="POST" action="{{ url_for('auth.register_worker') }}" class="space-y-4 text-xs">
             <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+                <label class="block font-semibold text-cream-200 mb-1.5">Full Name</label>
                 <input type="text" name="full_name" required placeholder="e.g. Ramesh Patel"
-                       class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition">
+                       class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 outline-none transition">
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Worker Username / Staff ID</label>
-                <input type="text" name="username" required placeholder="Choose a worker username"
-                       class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition">
+                <label class="block font-semibold text-cream-200 mb-1.5">Worker Username / Staff ID</label>
+                <input type="text" name="username" required placeholder="Choose staff username"
+                       class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 outline-none transition">
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Mobile Phone (WhatsApp Active)</label>
-                <input type="tel" name="phone" required placeholder="9876543210"
-                       class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition">
+                <label class="block font-semibold text-cream-200 mb-1.5">Mobile Phone (WhatsApp Active)</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gold-400 text-xs font-mono font-bold">+91</span>
+                    <input type="tel" name="phone" required placeholder="9876543210"
+                           class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl pl-12 pr-3.5 py-2.5 text-white placeholder-slate-600 outline-none transition font-mono">
+                </div>
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Email (Optional)</label>
+                <label class="block font-semibold text-cream-200 mb-1.5">Email (Optional)</label>
                 <input type="email" name="email" placeholder="worker@glowwheels.com"
-                       class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition">
+                       class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 outline-none transition">
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Create Password</label>
+                <label class="block font-semibold text-cream-200 mb-1.5">Password</label>
                 <input type="password" name="password" required placeholder="••••••••"
-                       class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition">
+                       class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 outline-none transition">
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Confirm Password</label>
+                <label class="block font-semibold text-cream-200 mb-1.5">Confirm Password</label>
                 <input type="password" name="confirm_password" required placeholder="••••••••"
-                       class="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 outline-none transition">
+                       class="w-full bg-forest-950 border border-forest-800 focus:border-gold-400 rounded-xl px-3.5 py-2.5 text-white placeholder-slate-600 outline-none transition">
             </div>
 
-            <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all mt-4">
+            <button type="submit" class="w-full py-3 rounded-xl gold-btn text-forest-950 font-bold text-xs tracking-wide shadow-lg mt-2">
                 Register as Worker
             </button>
         </form>
 
-        <div class="mt-6 pt-6 border-t border-slate-800 text-center text-xs text-slate-400">
+        <div class="mt-6 pt-6 border-t border-forest-800 text-center text-xs text-slate-400">
             Already registered as staff? 
-            <a href="{{ url_for('auth.login', role='worker') }}" class="text-emerald-400 font-semibold hover:underline">Worker Login here</a>
+            <a href="{{ url_for('auth.worker_login') }}" class="text-gold-400 font-bold hover:underline ml-1">Worker Login here</a>
         </div>
     </div>
 </div>
 {% endblock %}
-
