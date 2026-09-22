@@ -156,5 +156,5 @@ if __name__ == '__main__':
     print(f"  Local URL: http://127.0.0.1:{port}")
     print(f"  Admin Login: {Config.ADMIN_USERNAME} / {Config.ADMIN_PASSWORD}")
     print("==================================================")
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
 
