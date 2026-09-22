@@ -8,6 +8,11 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # Ensure secret_key is always set even if environment variable was empty
+    secret = (app.config.get('SECRET_KEY') or '').strip() or 'glowwheels-super-secret-key-2026-carwash'
+    app.secret_key = secret
+    app.config['SECRET_KEY'] = secret
+
     # Initialize extensions
     db.init_app(app)
 

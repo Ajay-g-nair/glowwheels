@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'glowwheels-super-secret-key-2026-carwash')
+    SECRET_KEY = (os.environ.get('SECRET_KEY') or '').strip() or 'glowwheels-super-secret-key-2026-carwash'
     
     # Use SQLite locally; supports PostgreSQL (e.g. Supabase, Neon, Render) via DATABASE_URL
     database_url = os.environ.get('DATABASE_URL')
@@ -59,9 +59,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Fixed Admin Credentials (per project requirement)
-    ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
-    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
-    ADMIN_PHONE = os.environ.get('ADMIN_PHONE', '919876543210') # Set your Admin WhatsApp number here
+    ADMIN_USERNAME = (os.environ.get('ADMIN_USERNAME') or '').strip() or 'admin'
+    ADMIN_PASSWORD = (os.environ.get('ADMIN_PASSWORD') or '').strip() or 'admin123'
+    ADMIN_PHONE = (os.environ.get('ADMIN_PHONE') or '').strip() or '919876543210' # Set your Admin WhatsApp number here
 
     # Brand Details
     BRAND_NAME = "GlowWheels"
